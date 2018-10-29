@@ -1,0 +1,174 @@
+% This is LLNCS.DEM the demonstration file of
+% the LaTeX macro package from Springer-Verlag
+% for Lecture Notes in Computer Science,
+% version 2.4 for LaTeX2e as of 16. April 2010
+%
+\documentclass{llncs}
+%
+\usepackage{multirow}
+\usepackage{hhline}
+\usepackage{caption}
+\usepackage{makecell}
+\usepackage{ragged2e}
+\usepackage{parskip}
+\usepackage{wrapfig}
+\usepackage{array}
+\usepackage{float}
+\usepackage[english]{babel}
+\usepackage{lipsum}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{graphicx}
+\graphicspath{{images/}} 
+\usepackage[linesnumbered,ruled]{algorithm2e}
+\usepackage{courier}
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,allcolors=blue}
+\usepackage{listings}
+\lstset{
+    basicstyle=\ttfamily,
+    frame=none, 
+    breaklines=true,
+    numbers=left,
+    xleftmargin=2.5em,
+    framexleftmargin=0em,
+    emphstyle=\textbf,
+    float=t
+}
+\lstdefinestyle{ocl}{
+    emph={
+        context, inv
+    }
+}
+\lstdefinestyle{cbp}{
+    basicstyle=\ttfamily\scriptsize,
+    emph={
+        session, create, of, type,
+        set, to, add, hire
+    }
+}
+\lstdefinestyle{xmi}{
+    basicstyle=\ttfamily\scriptsize,
+    emph={
+        Node, children
+    }
+}
+\lstdefinestyle{xml}{
+    basicstyle=\ttfamily\scriptsize,
+    emph={
+        register, create, add, to, resource,
+        from, eattribute, remove, ereference,
+        set, unset, session, Roy, Jen,
+        Moss, Richmond
+    }
+}
+\lstdefinestyle{java}{
+    basicstyle=\ttfamily\scriptsize,
+    emph={
+        case, $unset$,
+        instanceof, else, if, void,
+        new, UnsetEAttributeEvent,
+        UnsetEReferenceEvent,
+        @override, public, class, extends
+    }
+}
+\lstdefinestyle{eol}{
+    basicstyle=\ttfamily\scriptsize,
+    emph={
+        var, new, for, in, create, set, of, with, type,
+        unset, to, add, remove, delete, register, move,
+        from, position, from, move-within, session, \.
+    }
+}
+
+% $ChangeHybridEventAdapter$
+
+\hyphenation{op-tical net-works semi-conduc-tor Hybrid-Change-Event-Adapter Hybrid-XMI-Change-Event-Adapater
+    Hybrid-Neo-EMF-Change-Event-Adapater change-Events Change-Event-Adapter EContent-Adapter notify-Changed Hybrid-Resource Resource-Impl state-Based-Resource cbp-Output-Stream Output-Stream Hybrid-Change-Event-Adapater Output-Stream Hybrid-XMI-Resource-Impl Hybrid-Neo-EMF-Resource-Impl Persistence-Resource change-Events
+}
+
+
+\begin{document}
+\renewcommand{\thelstlisting}{\arabic{lstlisting}}
+\renewcommand{\labelitemi}{$\bullet$}
+\newcommand{\dk}[1]{\textbf{[DK: #1]}}
+
+\title{Towards Hybrid Model Persistence}
+%
+\titlerunning{Towards Change-based Model Comparison}  % abbreviated title (for running head)
+%     also used for the TOC unless
+%     \toctitle is used
+%
+%\author{
+%Alfa Yohannis \and Horacio Hoyos Rodriguez$^{*}$ \and Fiona Polack$^{**}$ \and \\ Dimitris Kolovos
+%}
+\author{
+Alfa Yohannis$^{1,3}$ \and Horacio Hoyos Rodriguez$^{*1}$ \and Fiona Polack$^{**2}$ \and \\ Dimitris Kolovos$^{1}$
+}
+%
+\authorrunning{
+Alfa Yohannis et al.
+} % abbreviated author list (for running head)
+%
+%%%% list of authors for the TOC (use if author list has to be modified)
+%\tocauthor{Alfa Yohannis,Horacio Hoyos Rodriguez, Fiona Polack, Dimitris Kolovos}
+%\institute{anonym}
+
+%\institute{Department of Computer Science, University of York, United Kingdom\\
+%    $^{**}$School of Computing and Maths, Keele University, United Kingdom\\
+%\email{\{ary506, dimitris.kolovos\}@york.ac.uk
+%\\$^{*}$horacio\_hoyos\_rodriguez@ieee.org
+%\\$^{**}$f.a.c.polack@keele.ac.uk}}
+
+\institute{$^{1}$Department of Computer Science, University of York, United Kingdom\\
+    $^{2}$School of Computing and Maths, Keele University, United Kingdom\\
+    $^{3}$Department of Computer Science, Institut Teknologi dan Bisnis Kalbis, Indonesia\\
+    \email{\{ary506, dimitris.kolovos\}@york.ac.uk
+        \\$^{*}$horacio\_hoyos\_rodriguez@ieee.org
+        \\$^{**}$f.a.c.polack@keele.ac.uk}}
+
+\maketitle      % typeset the title of the contribution
+%The first states the problem. The second states why the problem is a problem. The third is my startling sentence. The fourth states the implication of my startling sentence.
+\begin{abstract}
+
+\end{abstract}
+
+\vspace{-20pt}
+\section{Introduction}
+\label{sec:introduction}
+
+\section{Related Work}
+\label{sec:related_work}
+
+\section{Change-based Model Comparison}
+\label{sec:change-based_model_comparison}
+
+\subsection{Change-based Persistence}
+\label{subsec:change-based_persistence}
+
+\subsection{Approach}
+\label{subsec:approach}
+
+\subsection{Implementation}
+\label{subsec:implementation}
+
+\section{Evaluation}
+\label{sec:evaluation}
+
+\section{Limitation and Threat to Validity}
+\label{sec:limitation_and_Threat_to_validity}
+
+\section{Conclusions and Future Work}
+\label{sec:conclusion_and_future_work}
+
+
+\cite{DBLP:conf/caise/IgnatN05}
+
+\vspace{-10pt}
+\subsubsection*{Acknowledgements.} This work was partly supported by through a scholarship managed by \emph{Lembaga Pengelola Dana Pendidikan Indonesia} (Indonesia Endowment Fund for Education).
+%\clearpage
+
+\bibliography{references} 
+\bibliographystyle{splncs}
+
+\end{document} 
