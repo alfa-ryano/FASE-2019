@@ -25,6 +25,7 @@
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,allcolors=blue}
 \usepackage{listings}
+\usepackage{float}
 \lstset{
     basicstyle=\ttfamily,
     frame=none, 
@@ -93,7 +94,7 @@
 \renewcommand{\labelitemi}{$\bullet$}
 \newcommand{\dk}[1]{\textbf{[DK: #1]}}
 
-\title{Towards Hybrid Model Persistence}
+\title{Harnessing Change-based Persistence for\\Faster Model Comparison}
 %
 \titlerunning{Towards Change-based Model Comparison}  % abbreviated title (for running head)
 %     also used for the TOC unless
@@ -128,35 +129,121 @@ Alfa Yohannis et al.
         \\$^{**}$f.a.c.polack@keele.ac.uk}}
 
 \maketitle      % typeset the title of the contribution
+
 %The first states the problem. The second states why the problem is a problem. The third is my startling sentence. The fourth states the implication of my startling sentence.
 \begin{abstract}
-
+Comparison of two large state-based models can be time-consuming since every element of a model has to be visited, matched, and diffed with its respective element on the other model. This downside causes a bottleneck in collaborative modelling especially when identifying differences between two versions of a model is desirable. This paper harnesses change-based persistence to localise the comparison of models so that only elements affected by recent changes that are compared. This approach leads to a faster model differencing as opposed to the traditional state-based model comparison. 
 \end{abstract}
 
 \vspace{-20pt}
 \section{Introduction}
 \label{sec:introduction}
+In the context of collaborative modelling, large models are often developed in parallel with different modellers working on certain parts. This condition leads to the existence of different versions of the models. Further, in the integration process, these different versions of models need to be compared to identify their differences and to check if there are conflicts when merging them. Comparing these large models in state-based format can be lengthy since every element of a model has to be visited, matched, and diffed with its respective element on the opposite model. 
+This lengthy comparison can slow down the construction of models in a collaborative modelling setting. 
 
-\section{Related Work}
-\label{sec:related_work}
+In this paper, we present our approach in harnessing change-based persistence (CBP) to optimise model comparison. The nature of CBP that records recent changes with detailed information facilitates identifying elements that have been changed since the last version. This readily-available information of recently modified elements eliminate the necessity to visit, match, and diff \textbf{every} element of the models under compared. Thus, we can localise model comparison only to the recently affected elements which in turns can reduce the time used for model comparison. 
+
+This paper is structured as follows. Section \ref{sec:change-based_persistence} introduces the concept of change-based persistence. Sections \ref{sec:change-based_model_comparison} and \ref{sec:implementation} present our change-based approach to optimise model comparison and its implementation. Section \ref{sec:evaluation} presents our experimental results and evaluation. Section \ref{sec:related_work} provides an overview of related work, and Section \ref{sec:conclusion_and_future_work} concludes with a discussion on directions for future work.
+
+
+\section{Change-based Persistence}
+\label{sec:change-based_persistence}
+Change-based persistence is an alternative approach to the common state-based persistence (SBP) of models. Instead of persisting the last state of a model, CBP persists the overall history of changes made to a model.
+
+\begin{minipage}[t]{0.59\linewidth}    
+\begin{lstlisting}[style=eol,caption={The XMI of the model in Fig. \ref{fig:example_model}.},label=lst:originxmi]
+<uml:Class id="c" name="Class 1">
+ <operation id="oa" name="Operation A"/>
+ <operation id="ob" name="Operation B"/>
+ <operation id="oc" name="Operation C"/>
+ <operation id="od" name="Operation D"/>
+ <operation id="oe" name="Operation E"/>
+</uml:Class>
+\end{lstlisting}
+\vspace{-30pt}
+\begin{figure}[H]
+\includegraphics[width=\linewidth]{images/uoy}
+\caption{Caption for image}
+\label{fig:example_model}
+\end{figure}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.39\linewidth}
+\begin{lstlisting}[style=eol,caption={The textual CBP of the model in Fig. \ref{fig:example_model}.},label=lst:origincbp]
+session "origin"
+create c type Class
+set c.name to "Class 1" 
+create oa type Operation
+set oa.name to "Operation A" 
+create ob type Operation
+set ob.name to "Operation B" 
+create oc type Operation
+set oc.name to "Operation C" 
+create od type Operation
+set od.name to "Operation D" 
+create oe type Operation
+set oe.name to "Operation E" 
+add oa to c.operations
+add ob to c.operations
+add oc to c.operations
+add od to c.operations
+add oe to c.operations
+\end{lstlisting}
+\end{minipage}
+
+\section{Implementation}
+\label{sec:implementation}
 
 \section{Change-based Model Comparison}
 \label{sec:change-based_model_comparison}
 
-\subsection{Change-based Persistence}
-\label{subsec:change-based_persistence}
+\begin{minipage}[t]{0.49\linewidth}    
+\begin{lstlisting}[firstnumber=19,style=eol,caption={The left version.},label=lst:leftcbp]
+session "LEFT"
+set c.name from "Class 1" to "Class 01"
+move oc in c.operations from 2 to 4
+remove od from c.operations
+delete od
+create of type Operation
+set of.name to "Operation F"
+add of to c.operations
+\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.49\linewidth}
+\begin{lstlisting}[firstnumber=19,style=eol,caption={The right version.},label=lst:rightcbp]
+session "RIGHT"
+set oa.name from "Operation A" to "Operation AA"
+move oc in c.operations from 2 to 4
+move oe in c.operations from 3 to 2
+create og type Operation
+set oe.name to "Operation G" 
+add oa to c.operations pos 3
+move ob in c.operations from 1 to 0
+set oa.name from "Operation AA" to "Operation A"
+\end{lstlisting}
+\end{minipage}
 
-\subsection{Approach}
-\label{subsec:approach}
 
-\subsection{Implementation}
-\label{subsec:implementation}
+
+
 
 \section{Evaluation}
 \label{sec:evaluation}
 
-\section{Limitation and Threat to Validity}
+\subsection{Limitation and Threat to Validity}
 \label{sec:limitation_and_Threat_to_validity}
+
+\section{Related Work}
+\label{sec:related_work}
+
+Comparison at the structural level. EMF Compare, SiDiff, ECL. 
+
+EMFStore
+Comparison at the change/operational level. 
+
+Our approach use the changes to compare at the structural level.
+
 
 \section{Conclusions and Future Work}
 \label{sec:conclusion_and_future_work}
