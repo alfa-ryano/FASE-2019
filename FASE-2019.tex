@@ -137,7 +137,7 @@ Alfa Yohannis et al.
 
 %The first states the problem. The second states why the problem is a problem. The third is my startling sentence. The fourth states the implication of my startling sentence.
 \begin{abstract}
-Comparison of two large state-based models can be time-consuming since every element of a model has to be visited, matched, and diffed with its respective element on the other model. This downside causes a bottleneck in collaborative modelling especially when identifying differences between two versions of a model is desirable. This paper harnesses change-based persistence to localise the comparison of models so that only elements affected by recent changes that are compared. This approach leads to a faster model differencing as opposed to the traditional state-based model comparison. 
+Comparison of two large state-based models can be time-consuming since every element of a model has to be visited, matched, and diffed with its respective element on the other model. This downside causes a bottleneck in collaborative modelling especially when identifying differences between two versions of a model is desirable. This paper harnesses change-based persistence to localise the comparison of models so that only elements affected by recent changes that are compared. This approach leads to a faster model differencing as opposed to the common state-based model comparison. 
 \end{abstract}
 
 \vspace{-20pt}
@@ -338,16 +338,14 @@ In the tree construction phase, our implementation iterates through both left an
 
 
 
-At line 2 of the left CBP (List. \ref{lst:leftcbp}), the \textsf{name} of element \textsf{od} is set from ``Operation D'' to ``Op D''. Using this information, we know that there is an element \textsf{od}, with its feature \textsf{name}, has been modified. Thus, a CBP object with id $od$ and a CBP feature $name$ is created. The value ``Op D'' is put to the $leftValues$ Map attribute of the CBP feature $name$ with $key$ = 0 indicating its position. Since \textsf{name} is a single-valued feature -- by looking at the model's metamodel, the $key$ is always 0. Also, the value ``Operation D'' is put to the $oldValues$ attribute of the CBP feature $name$ as its original value. 
+At line 2 of the left CBP (List. \ref{lst:leftcbp}), the \textsf{name} of element \textsf{od} is set from ``Operation D'' to ``Op D''. Using this information, we know that there is an element \textsf{od}, with its feature \textsf{name}, has been modified. Thus, a CBP object with id $od$ and a CBP feature $name$ is created. The value ``Op D'' is put to the $leftValues$ Map attribute of the CBP feature $name$ with $key$ = 0 indicating its position. Since \textsf{name} is a single-valued feature -- by looking at the model's metamodel, the $key$ is always 0. Also, the value ``Operation D'' is put to the $oldValues$ and $rightValues$ attributes of the CBP feature $name$ as its original value. 
 
-Line 3 has the same change type of the first line. Thus, the same mechanism is also applied, producing a CBP object with id $c$ and a CBP feature $name$ with $leftValues$[0, ``Class 01''] (key = 0, value = ``Class 01'') and $oldValues$[0, ``Class 1'']. At line 4, element \textsf{oc} in the \textsf{c}'s \textsf{operations} feature is moved from position 2 to 4. Thus, two CBP objects, $oc$ and $c$, are created, and a CBP feature $operations$ belongs to $c$ is also created. The $leftPosition$ of $oldLeftPosition$ of $oc$ is set to 4 and 2 respectively. Also, $oc$ with  key 4 is put to $leftValues$ and key 2 is put to $oldValues$. 
-
-At line 5, element \textsf{od} at index 2 is removed from \textsf{c}'s \textsf{operations} feature. Since the CBP objects of $od$ and $c$ already exists, there is no need to re-create them. Using the available information, CBP object $od$ is removed from $c$'s CBP Feature $operations$. As consequence, the position -- the key -- of CBP object $oc$ that already exists in the CBP feature is adjusted from 4 to 3. Line 6 deletes element \textsf{od} from the left model. To remember this deletion, the flag $leftIsDeleted$ in CBP object $od$ is set to $true$, indicating that $od$ has been existed since the original version but eventually deleted in the current version. 
+Line 3 has the same change type of the first line. Thus, the same mechanism is also applied, producing a CBP object with id $c$ and a CBP feature $name$ with $leftValues$[0, ``Class 01''] (key = 0, value = ``Class 01''), $oldValues$[0, ``Class 1''], and $rightValues$[0, ``Class 1'']. At line 4, element \textsf{oc} in the \textsf{c}'s \textsf{operations} feature is moved from position 2 to 4. Thus, two CBP objects, $oc$ and $c$, are created, and a CBP feature $operations$ belongs to $c$ is also created. The $leftPosition$, $oldLeftPosition$, and $rightValues$ of $oc$ is set to 4, 2, and 2 respectively, which means $oc$ with  keys 4, 2, and 2 is also put to $leftValues$, $oldValues$, and $rightValues$ respectively. 
 
 \begin{table}
     \centering
     \begin{footnotesize}
-        \caption{The object tree using the available information in the left CBP.}
+        \caption{The simplified state of the object tree after using the available information only from the left CBP to contruct it.}
         \label{table:left_object_tree}
         \begin{tabular}{  c  c  c  c  c  c  c  c  }
             \hline
@@ -379,7 +377,7 @@ At line 5, element \textsf{od} at index 2 is removed from \textsf{c}'s \textsf{o
             \textbf{true} & false & & \textbf{\textsf{of}} & & false & false & \\
             \rowcolor{gray2}
             & & & \textbf{\textsf{name}} & & & & \\
-            & & ``Class 01'' & \textbf{0} & ``Class 1'' & & & ``Class 1'' \\
+            & & \makecell{``Opera\\tion F''} & \textbf{0} & & & &  \\
             \hline
         \end{tabular}
         \begin{flushright}
@@ -388,11 +386,75 @@ At line 5, element \textsf{od} at index 2 is removed from \textsf{c}'s \textsf{o
     \end{footnotesize}
 \end{table}
 
+At line 5, element \textsf{od} at index 2 is removed from \textsf{c}'s \textsf{operations} feature. Since the CBP objects of $od$ and $c$ already exists, there is no need to re-create them. Using the available information, CBP object $od$ is removed from $c$'s CBP Feature $operations$. As consequence, the position -- the key -- of CBP object $oc$ that already exists in the CBP feature is adjusted from 4 to 3. Line 6 deletes element \textsf{od} from the left model. To remember this deletion, the flag $leftIsDeleted$ in CBP object $od$ is set to $true$, indicating that $od$ has been existed since the original version but eventually deleted in the current version. 
+
 Lines 7 to 9 create an \textsf{Operation} with id \textsf{of}, set its feature \textsf{name} to ``Operation F'', and add it to \textsf{c}'s feature \textsf{Operations} at position 3. As consequence, an CBP object $of$ is created. Its $leftIsCreated$ is set to $true$, indicating that the element is created in the current version. The CBP feature $name$ of $of$ is also created and its value is set to ``Operation F''. The CBP object $of$ then is added to $c$'s CBP feature $operations$ at position 3, moving the CBP object $oc$ from position 3 back to 4. 
 
 The state of the object tree after using the available information in the left CBP to construct it is summarised in Table \ref{table:left_object_tree}. The grey, light grey, and white lines represent CBP object, CBP feature, and value respectively. The values of CBP feature $operations$ refer/point to the respective CBP objects. The `??' symbol indicates that the value at its position is still unknown.
 
-\subsubsection{Right Side.} \label{sec:right_side} After left
+\subsubsection{Right Side.} \label{sec:right_side} The iteration continues to the right CBP. The line 1 is skipped since it is a session event.  At line 2, a CBP object with id $ob$ and CBP feature $name$ is created. The values of CBP feature $name$ are also set so that it has $rightValues$[0, ``Operation BB''], $oldValues$[0, ``Operation B''], and $leftValues$[0, ``Operation B'']. 
+
+\begin{table}
+    \centering
+    \begin{footnotesize}
+        \caption{The simplified state of the object tree after using the available information from both \textbf{left and right} CBPs to contruct it.}
+        \label{table:right_object_tree}
+        \begin{tabular}{  c  c  c  c  c  c  c  c  }
+            \hline
+            \multicolumn{3}{c}{Left} & \multirow{2}{*}{Objects} & \multicolumn{3}{c}{Right} & Origin\\
+            \hhline{---~----}
+            isCreated & isDeleted & leftValues & & rightValues & isCreated & isDeleted & oldValues\\
+            \hline
+            \rowcolor{gray1}
+            false & false & & \textbf{\textsf{c}} & & false & false & \\
+            \rowcolor{gray2}
+            & & & \textbf{\textsf{name}} & & & & \\
+            & & ``Class 01'' & \textbf{0} & ``Class 1'' & & & ``Class 1'' \\
+            \rowcolor{gray2}
+            & & & \textbf{\textsf{operation}} & & & & \\
+            & & ?? & \textbf{\small{0}} & oc & & & ?? \\
+            & & ob & \textbf{\small{1}} & ?? & & & ob \\
+            & & oe & \textbf{\small{2}} & oe & & & oc \\
+            & & of & \textbf{\small{3}} & og & & & od \\
+            & & oc & \textbf{\small{4}} & od & & & oe \\
+            & & ?? & \textbf{\small{5}} & oc & & & ?? \\
+            \hline
+            \rowcolor{gray1}
+            false & false & & \textbf{\textsf{oc}} & & false & false & \\
+            \hline
+            \rowcolor{gray1}
+            false & \textbf{true} & & \textbf{\textsf{od}} & & false & false & \\
+            \rowcolor{gray2}
+            & & & \textbf{\textsf{name}} & & & & \\
+            & & ``Op D'' & \textbf{0} & \makecell{``Opera\\tion D''} & & & \makecell{``Opera\\tion D''} \\
+            \hline
+            \rowcolor{gray1}
+            \textbf{true} & false & & \textbf{\textsf{of}} & & false & false & \\
+            \rowcolor{gray2}
+            & & & \textbf{\textsf{name}} & & & & \\
+            & & \makecell{``Opera\\tion F''} & \textbf{0} & & & &  \\
+            \hline
+            \rowcolor{gray1}
+            false & false & & \textbf{\textsf{oe}} & & false & false & \\
+            \hline
+            \rowcolor{gray1}
+            false & false & & \textbf{\textsf{ob}} & & false & false & \\
+            \rowcolor{gray2}
+            & & & \textbf{\textsf{name}} & & & & \\
+            & & \makecell{``Opera\\tion B''} & \textbf{0} & \makecell{``Opera\\tion B''} & & & \makecell{``Opera\\tion B''}\\
+            \hline
+            \rowcolor{gray1}
+            false & false & & \textbf{\textsf{og}} & & \textbf{true} & false & \\
+            \rowcolor{gray2}
+            & & & \textbf{\textsf{name}} & & & & \\
+            & &  & \textbf{0} & \makecell{``Opera\\tion G''} & & & \\
+            \hline
+        \end{tabular}
+        \begin{flushright}
+            \textit{grey}: object, \textit{light grey}: feature, \textit{white}: value, ??: the value is still unknown
+        \end{flushright}
+    \end{footnotesize}
+\end{table}
 
 \subsection{Diff Computation}
 \label{sec:diff_computation}
