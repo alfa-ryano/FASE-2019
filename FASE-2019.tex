@@ -98,9 +98,9 @@
 \renewcommand{\labelitemi}{$\bullet$}
 \newcommand{\dk}[1]{\textbf{[DK: #1]}}
 
-\title{Harnessing Change-based Persistence for\\Faster Model Comparison}
+\title{Optimising Model Comparison by Harnessing Change-based Persistence}
 %
-\titlerunning{Towards Change-based Model Comparison}  % abbreviated title (for running head)
+\titlerunning{Optimising Model Comparison by Harnessing Change-based Persistence}  % abbreviated title (for running head)
 %     also used for the TOC unless
 %     \toctitle is used
 %
@@ -244,7 +244,7 @@ In a collaborative modelling setting, a model is commonly developed in parallel 
 \hfill
 \begin{minipage}[t]{0.49\linewidth}
 \begin{lstlisting}[style=eol,caption={The simplified XMI of the right model in Fig. \ref{fig:right}.},label=lst:rightxmi]
-<uml:Class id="c" name="Class1">
+<uml:Class id="c" name="Class X">
   <operation id="ob" 
     name="Operation B"/>
   <operation id="oa" 
@@ -263,7 +263,7 @@ In a collaborative modelling setting, a model is commonly developed in parallel 
 
 At some point, these two models need to be compared (e.g. to identify their differences for analytics or conflicts when merging). The common approach to compare models is to create matches between the elements of both models and diff them. Generally, the matching process iterates through all the elements of the models being compared and matches them by their identifiers or through a similarity mechanism if they have none \cite{DBLP:conf/sfm/BroschKLSWW12,emfcompare2018developer}. After that, the diffing process then starts to find differences between the matched elements and their features\footnote{In default, the process iterates through all features, not only to the declared features in the XMI file, unless it has some mechanism to do so.}, commonly using the Longest Common Subsequence algorithms, e.g. \cite{DBLP:journals/algorithmica/Meyers86}. 
 
-In our example, the matching iterates through all the elements of both model, 6 and 7 elements in the left and right models respectively, using their identifiers. The matching process yields 7 matches, $m_1$ = (\textsf{c}, \textsf{c}), $m_2$ = (\textsf{oa}, \textsf{oa}), $m_3$ = (\textsf{ob}, \textsf{ob}), $m_4$ = {\textsf{oe}, \textsf{oe}), (\textsf{of},), $m_5$ = (, \textsf{og}), $m_6$ = (, \textsf{od}), and $m_7$ = (\textsf{oc}, \textsf{oc}). The diffing process then iterates through all the matches and their features. In the first match, it identifies that both \textsf{c} elements are different in their \textsf{name} and \textsf{operations} features. The left \textsf{c}'s \textsf{name} is ``Class 01'' while the other \textsf{c}'s \textsf{name} is ``Class1'' (diff $d_1$).The \textsf{operations} features are different in their contents -- the positions of element \textsf{ob} are different in both features (diff $d_2$), the left \textsf{operations} feature contains element \textsf{of} that does not exist in the right \textsf{operations} (diff $d_3$}), and the left \textsf{operations} feature does not contain elements \textsf{og} and \textsf{od} (diffs $d_4$ and $d_5$) but exists in in the right \textsf{operations}. Other matches doe not have any differences.
+In our example, the matching iterates through all the elements of both model, 6 and 7 elements in the left and right models respectively, using their identifiers. The matching process yields 7 matches, $m_1$ = (\textsf{c}, \textsf{c}), $m_2$ = (\textsf{oa}, \textsf{oa}), $m_3$ = (\textsf{ob}, \textsf{ob}), $m_4$ = {\textsf{oe}, \textsf{oe}), (\textsf{of},), $m_5$ = (, \textsf{og}), $m_6$ = (, \textsf{od}), and $m_7$ = (\textsf{oc}, \textsf{oc}). The diffing process then iterates through all the matches and their features. In the first match, it identifies that both \textsf{c} elements are different in their \textsf{name} and \textsf{operations} features. The left \textsf{c}'s \textsf{name} is ``Class 01'' while the other \textsf{c}'s \textsf{name} is ``Class X'' (diff $d_1$).The \textsf{operations} features are different in their contents -- the positions of element \textsf{ob} are different in both features (diff $d_2$), the left \textsf{operations} feature contains element \textsf{of} that does not exist in the right \textsf{operations} (diff $d_3$}), and the left \textsf{operations} feature does not contain elements \textsf{og} and \textsf{od} (diffs $d_4$ and $d_5$) but exists in in the right \textsf{operations}. Other matches doe not have any differences.
 
 Similar to EMF Compare \cite{emfcompare2018developer}, this paper presents differences as changes applied to a model so that it becomes equal to a reference model. These changes share a number of common elements: \textit{Match}, \textit{Feature}, \textit{Value}, \textit{Kind}, and \textit{Reference}. \textit{Match} is the match in which diffing is performed. Since elements' identifiers are used to match elements, the identifier is used to identify the match. \textit{Feature} and \textit{Value} are the feature and value involved in a change. \textit{Kind} is the type of the change. 
 It can be one of these types: \textsf{CHANGE}, \textsf{ADD}, \textsf{DELETE}, and \textsf{MOVE}. \textsf{CHANGE} represents a change of value of a single attribute or non-containment reference. \textsf{ADD} represents an addition of a value to a multi-valued attribute, multi-valued non-containment reference, or single/multi-valued containment reference. \textsf{DELETE} is the counterpart of \textsf{ADD}. \textsf{MOVE} represents a change of position, containing feature, or container of a value. \textit{Reference} is the reference model. It can be the left or right model. For the rest of the paper, the left model is the reference model -- how to make the right model equals to the left model. 
@@ -285,7 +285,7 @@ Based on these definitions, we formalise the diffs identified previously as $d_n
     \label{fig:vcs}
 \end{figure}
 
-In the context of collaborative modelling using CBP, let's say that the file of the CBP in \ref{lst:origincbp} already exists in a text-based Version Control System (VCS) server (Fig. \ref{fig:vcs}). Both modellers checkout the original CBP (steps 1 and 2) and modify it (steps 3 and 4). Changes made by the left and right modellers will be appended to the original CBP producing two different CBP representation as displayed in Listings \ref{lst:leftcbp} and \ref{lst:rightcbp}\footnote{Both CBPs only present the changes after the last line of the original version (start from line 19). In implementation, the changes are appended to the original version.} -- capturing different courses of modification made by the modellers. The right developer then commits her work (original + right version) to the VCS. Since there is no new commit on the VCS, the commit process is straightforward (step 5). The left developer then decide to also commit his work (original + left version) to the VCS, thus his machine downloads the current version from the server (step 6). However, since the original version has been updated since his last checkout, he has to perform a model comparison to check the differences, and possibly conflicts, between his version (original + left version) and the updated original version (original + right version). 
+In the context of collaborative modelling using CBP, let's say that the file of the CBP in \ref{lst:origincbp} already existed in a text-based Version Control System (VCS) server (Fig. \ref{fig:vcs}). Both modellers checkout the original CBP (steps 1 and 2) and modify it (steps 3 and 4). Changes made by the left and right modellers will be appended to the original CBP producing two different CBP representation as displayed in Listings \ref{lst:leftcbp} and \ref{lst:rightcbp}\footnote{Both CBPs only present the changes after the last line of the original version (start from line 19). In implementation, the changes are appended to the original version.} -- capturing different courses of modification made by the modellers. The right developer then commits her work (original + right version) to the VCS. Since there is no new commit on the VCS, the commit process is straightforward (step 5). The left developer then decide to also commit his work (original + left version) to the VCS, thus his machine downloads the current version from the server (step 6). However, since the original version has been updated since his last checkout, he has to perform a model comparison to check the differences, and possibly conflicts, between his version (original + left version) and the updated original version (original + right version). 
 
 \begin{minipage}[t]{0.49\linewidth}    
 \begin{lstlisting}[firstnumber=19,style=eol,caption={The CBP of the model in Fig. \ref{fig:left} (left version).},label=lst:leftcbp]
@@ -312,7 +312,7 @@ set og.name to "Operation G"
 add og to c.operations at 3
 move ob in c.operations from 1 to 0
 set oa.name from "Operation BB" to "Operation B"
-set c.name from "Class 1" to "Class1"
+set c.name from "Class 1" to "Class X"
 \end{lstlisting}
 \end{minipage}
 
@@ -336,11 +336,11 @@ In the tree construction phase, our implementation iterates through both left an
 
 \subsubsection{Left Side.}\label{sec:left_side} The iteration starts from the first line of the left CBP to the last line of the right CBP. The line 1 is a session event. Session event indicates that its following events -- until the next session event or end of file -- are one batch of changes when they were saved into a model persistence file. This event is not significant for model comparison, thus skipped.  
 
-
-
 At line 2 of the left CBP (List. \ref{lst:leftcbp}), the \textsf{name} of element \textsf{od} is set from ``Operation D'' to ``Op D''. Using this information, we know that there is an element \textsf{od}, with its feature \textsf{name}, has been modified. Thus, a CBP object with id $od$ and a CBP feature $name$ is created. The value ``Op D'' is put to the $leftValues$ Map attribute of the CBP feature $name$ with $key$ = 0 indicating its position. Since \textsf{name} is a single-valued feature -- by looking at the model's metamodel, the $key$ is always 0. Also, the value ``Operation D'' is put to the $oldValues$ and $rightValues$ attributes of the CBP feature $name$ as its original value. 
 
-Line 3 has the same change type of the first line. Thus, the same mechanism is also applied, producing a CBP object with id $c$ and a CBP feature $name$ with $leftValues$[0, ``Class 01''] (key = 0, value = ``Class 01''), $oldValues$[0, ``Class 1''], and $rightValues$[0, ``Class 1'']. At line 4, element \textsf{oc} in the \textsf{c}'s \textsf{operations} feature is moved from position 2 to 4. Thus, two CBP objects, $oc$ and $c$, are created, and a CBP feature $operations$ belongs to $c$ is also created. The $leftPosition$, $oldLeftPosition$, and $rightValues$ of $oc$ is set to 4, 2, and 2 respectively, which means $oc$ with  keys 4, 2, and 2 is also put to $leftValues$, $oldValues$, and $rightValues$ respectively. 
+Line 3 has the same change type of the first line. Thus, the same mechanism is also applied, producing a CBP object with id $c$ and a CBP feature $name$ with $leftValues$[0] = ``Class 01'' (key = 0, value = ``Class 01''), $oldValues$[0] = ``Class 1'', and $rightValues$[0] = ``Class 1''. At line 4, element \textsf{oc} in the \textsf{c}'s \textsf{operations} feature is moved from position 2 to 4. Thus, two CBP objects, $oc$ and $c$, are created, and a CBP feature $operations$ belongs to $c$ is also created. The $leftPosition$, $oldLeftPosition$, and $rightPosition$ of $oc$ is set to 4, 2, and 2 respectively, which means $oc$ is also put to $leftValues$, $oldValues$, and $rightValues$ with keys (positions) 4, 2, and 2 respectively. 
+
+All changes -- move, add, and remove events -- that modify the arrangement of values in a multi-valued feature are recorded into the $^*posEvents$ attribute of class \textsf{CBPFeature} (Fig. \ref{fig:approach_class_diagram}). The attribute contains instances of \textsf{CBPPosEvent} which contains the type and positions of each change applied to a multi-valued feature. The $^*PosEvents$ is used to determine the original position -- key in $oldValues$ -- of a CBP object. The use of the attribute is explained in the next section when constructing object tree using the information from the right CBP. Since line 4 modifies the order of CBP feature $operations$, an instance of \textsf{CBPPosEvent} -- a position event -- for this change is added to the $leftPosEvents$ attribute of the CBP feature.        
 
 \begin{table}
     \centering
@@ -386,13 +386,21 @@ Line 3 has the same change type of the first line. Thus, the same mechanism is a
     \end{footnotesize}
 \end{table}
 
-At line 5, element \textsf{od} at index 2 is removed from \textsf{c}'s \textsf{operations} feature. Since the CBP objects of $od$ and $c$ already exists, there is no need to re-create them. Using the available information, CBP object $od$ is removed from $c$'s CBP Feature $operations$. As consequence, the position -- the key -- of CBP object $oc$ that already exists in the CBP feature is adjusted from 4 to 3. Line 6 deletes element \textsf{od} from the left model. To remember this deletion, the flag $leftIsDeleted$ in CBP object $od$ is set to $true$, indicating that $od$ has been existed since the original version but eventually deleted in the current version. 
+At line 5, element \textsf{od} at index 2 is removed from \textsf{c}'s \textsf{operations} feature. Since the CBP objects of $od$ and $c$ already existed, there is no need to re-create them. Using the available information, CBP object $od$ is removed from $c$'s CBP Feature $operations$. As consequence, the position -- the key -- of CBP object $oc$ that already existed in the CBP feature is adjusted from 4 to 3. This removal is also recorded into the $leftPosEvents$ attribute of CBP Feature $operations$. Line 6 deletes element \textsf{od} from the left model. To remember this deletion, the flag $leftIsDeleted$ in CBP object $od$ is set to $true$, indicating that $od$ has been existed since the original version but eventually deleted in the current version. 
 
-Lines 7 to 9 create an \textsf{Operation} with id \textsf{of}, set its feature \textsf{name} to ``Operation F'', and add it to \textsf{c}'s feature \textsf{Operations} at position 3. As consequence, an CBP object $of$ is created. Its $leftIsCreated$ is set to $true$, indicating that the element is created in the current version. The CBP feature $name$ of $of$ is also created and its value is set to ``Operation F''. The CBP object $of$ then is added to $c$'s CBP feature $operations$ at position 3, moving the CBP object $oc$ from position 3 back to 4. 
+Lines 7 to 9 create an \textsf{Operation} with id \textsf{of}, set its feature \textsf{name} to ``Operation F'', and add it to \textsf{c}'s feature \textsf{Operations} at position 3. As consequence, an CBP object $of$ is created. Its $leftIsCreated$ is set to $true$, indicating that the element is created in the current version. The CBP feature $name$ of $of$ is also created and its value is set to ``Operation F''. The CBP object $of$ then is added to $c$'s CBP feature $operations$ at position 3, moving the CBP object $oc$ from position 3 back to 4. This addition is also recorded into the $leftPosEvents$ attribute of CBP Feature $operations$.
 
 The state of the object tree after using the available information in the left CBP to construct it is summarised in Table \ref{table:left_object_tree}. The grey, light grey, and white lines represent CBP object, CBP feature, and value respectively. The values of CBP feature $operations$ refer/point to the respective CBP objects. The `??' symbol indicates that the value at its position is still unknown.
 
-\subsubsection{Right Side.} \label{sec:right_side} The iteration continues to the right CBP. The line 1 is skipped since it is a session event.  At line 2, a CBP object with id $ob$ and CBP feature $name$ is created. The values of CBP feature $name$ are also set so that it has $rightValues$[0, ``Operation BB''], $oldValues$[0, ``Operation B''], and $leftValues$[0, ``Operation B'']. 
+\subsubsection{Right Side.} 
+\label{sec:right_side}
+The iteration continues to the right CBP. The line 1 is skipped since it is a session event.  At line 2, a CBP object with id $ob$ and CBP feature $name$ is created. The values of CBP feature $name$ are also set so that it has $rightValues$[0] = ``Operation BB'', $oldValues$[0] = ``Operation B'', and $leftValues$[0] = ``Operation B''. 
+
+Line 3 moves the element \textsf{oc} in the \textsf{c}'s \textsf{operations} feature from position 2 to 4.  Since it has the same type of change at line 4 of the left CBP,  we apply the same procedure as explained before. Thus, the $rightPosition$ of $oc$ is set to 4. The $oldPosition$ of $oc$ already had a value, so no change applied to its value. CBP object $oc$ that already existed at key 2 -- it was put when constructing the object tree using the information from the left CBP -- in $rightValues$ is removed and put to position 4. As consequence of this move, CBP object $od$ that already existed in $rightValues$ is shifted from key (position) 3 to 2. The CBP object $oc$ is not put to $oldValues$[2] since the position already contained it. This movement is recorded into the $rightPosEvents$ attribute of CBP Feature $operations$.        
+
+Line 4 is also a move change. It moves the element \textsf{oe} from position 3 to 2 in the \textsf{c}'s \textsf{operations}. Since it is the first the element \textsf{oe} is introduced, a CBP object with id $oe$ is created. The CBP object is added to $rightValues$ at position 2. The challenge then comes when we want to determine the original position of $oe$ -- its position in $oldValues$. Position 3 is not its original position since it has been shifted down from 4 to 3 because of the previous line movement -- the move of CBP object $oc$. To determine that original position of $oe$ is 4, we have recorded all.
+
+The explanation of the remaining lines will be added here.
 
 \begin{table}
     \centering
@@ -409,10 +417,10 @@ The state of the object tree after using the available information in the left C
             false & false & & \textbf{\textsf{c}} & & false & false & \\
             \rowcolor{gray2}
             & & & \textbf{\textsf{name}} & & & & \\
-            & & ``Class 01'' & \textbf{0} & ``Class 1'' & & & ``Class 1'' \\
+            & & ``Class 01'' & \textbf{0} & ``Class X'' & & & ``Class 1'' \\
             \rowcolor{gray2}
             & & & \textbf{\textsf{operation}} & & & & \\
-            & & ?? & \textbf{\small{0}} & oc & & & ?? \\
+            & & ?? & \textbf{\small{0}} & ob & & & ?? \\
             & & ob & \textbf{\small{1}} & ?? & & & ob \\
             & & oe & \textbf{\small{2}} & oe & & & oc \\
             & & of & \textbf{\small{3}} & og & & & od \\
@@ -456,8 +464,21 @@ The state of the object tree after using the available information in the left C
     \end{footnotesize}
 \end{table}
 
+
+
 \subsection{Diff Computation}
 \label{sec:diff_computation}
+Our approach determines the differences between the two models by iterating through the object tree in Table \ref{table:right_object_tree} and making use of the states of values and $^*IsCreated$ and $^*IsDeleted$ flags. At CBP object $c$, the values of CBP feature $name$ are different between the left and the right sides. Thus, to make the right value equals to the left value, the value has to be change from ``Class X'' to ``Class 01''. Thus, we can determine that the first diff is $d_1^\prime$ = [\textsf{c}, \textsf{name}, ``Change 01'', \textsf{CHANGE}], which as are equal to $d_1$ that is defined in Sect. \ref{sec:change-based_persistence}.
+
+At position 0 in CBP feature $operations$ of CBP object $c$, the values are different between the left and the right sides -- '??' and $ob$ respectively. Since the left value is undefined, we check the flags of $ob$. All flags $^*IsCreated$ and $^*IsDeleted$ are in the $false$ state, which means element \textsf{ob} has been existed since the original version -- it has never been created or deleted in recent changes. Thus, the only possible type of change is move. Thus by checking the attributes $leftPosition$ and $rightPosition$ in class \textsf{CBPObject} (in Fig. \ref{fig:approach_class_diagram}), the positions of element \textbf{ob} are different between the left and right sides -- at positions 1 and 0 respectively. Therefore, we can decide that the second diff is $d_2^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{ob}, \textsf{MOVE}]. The flag \textit{isDiffed} of CBP object $ob$ is set to $true$ so that it can be skipped when processing values at position 1 -- the next position.  
+
+The values at position 2 in CBP object $c$'s $operations$ CBP feature are equal. Therefore, there is no diff at this position. At position 3, the values are different -- $of$ and $og$. When checking the $^*IsCreated$ and $^*IsDeleted$ flags, we can identify that both $of$ and $og$ have been separately created in the left and right recent changes respectively -- both has their $^*IsCreated$ flags are set to $true$. Thus, we can infer that $of$ and $og$ have been added to the position. To make the right model equals to the left model, element \textsf{of} should be added to the right side, and element \textsf{og} should be deleted. Thus, we can determine the third diff as $d_3^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{of}, \textsf{ADD}] and the fourth diff as $d_4^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{og}, \textsf{DELETE}].
+
+At position 4 in CBP feature $operations$ of CBP object $c$, the values are not equal. When checking their $^*IsCreated$ and $^*IsDeleted$ flags, we can infer that $oc$ has been existed since the original version -- all its $^*IsCreated$ and $^*IsDeleted$ flags are $false$ -- and $od$ is deleted from the left model -- its $leftIsCreated$ flag is $true$. The $leftPosition$ and $rightPosition$ of $oc$ are also checked and their values are different -- 4 and 5 respectively. Thus, to make the right model equals to the left model, element \textsf{oc} should be moved from 5 to 4, element \textsf{od} should be deleted. Therefore, we can formulate  that the fifth diff is $d_5^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{oc}, \textsf{MOVE}] and the sixth diff is $d_6^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{od}, \textsf{DELETE}]. 
+
+However, due to the design of features in Ecore/EMF metamodel, deleting an element from a feature shifts all the positions of the following elements one step downward. So it is not necessary to define $d_5^\prime$ as the position of \textsf{oc} is automatically stepped down from 5 to 4 if the \textit{deletion} ($d_6^\prime$) is executed first. To accommodate this, \textit{deletion} is given priority over \textit{move}. 
+
+More explanation will be added here.
 
 \section{Evaluation}
 \label{sec:evaluation}
