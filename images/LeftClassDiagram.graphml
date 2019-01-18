@@ -18,10 +18,10 @@
       <data key="d4"/>
       <data key="d6">
         <y:UMLClassNode>
-          <y:Geometry height="134.40854668674672" width="79.4243154435926" x="668.0903274917828" y="334.3297159090919"/>
+          <y:Geometry height="88.94294668674672" width="79.4243154435926" x="542.0451637458914" y="308.8864772727279"/>
           <y:Fill hasColor="false" transparent="false"/>
           <y:BorderStyle color="#000000" type="line" width="1.0"/>
-          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="56.76171875" x="11.331298346796302" y="3.0">Class 01<y:LabelModel>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="13" fontStyle="bold" hasBackgroundColor="false" hasLineColor="false" height="19.92626953125" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="53.82275390625" x="12.800780768671302" y="3.0">MathLib<y:LabelModel>
               <y:SmartNodeLabelModel distance="4.0"/>
             </y:LabelModel>
             <y:ModelParameter>
@@ -30,11 +30,10 @@
           </y:NodeLabel>
           <y:UML clipContent="true" constraint="" omitDetails="false" stereotype="" use3DEffect="false">
             <y:AttributeLabel/>
-            <y:MethodLabel>Operation A
-Operation B
-Operation E
-Operation F
-Operation C</y:MethodLabel>
+            <y:MethodLabel>abs()
+sqrt()
+pow()
+</y:MethodLabel>
           </y:UML>
         </y:UMLClassNode>
       </data>

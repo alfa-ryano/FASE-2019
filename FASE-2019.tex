@@ -96,6 +96,9 @@
 \renewcommand{\thelstlisting}{\arabic{lstlisting}}
 \renewcommand{\labelitemi}{$\bullet$}
 \newcommand{\dk}[1]{\textbf{[DK: #1]}}
+\newcommand{\And}{\textnormal{\textbf{and }}}
+\newcommand{\Is}{\textnormal{\textbf{is }}}
+\newcommand{\Not}{\textnormal{\textbf{not }}}
 
 \title{Harnessing Change-based Persistence to Optimise Model Comparison}
 %
@@ -136,14 +139,26 @@ Alfa Yohannis et al.
 
 %The first states the problem. The second states why the problem is a problem. The third is my startling sentence. The fourth states the implication of my startling sentence.
 \begin{abstract}
-Comparison of two large state-based models can be time-consuming since every element of a model has to be visited, matched, and diffed with its respective element on the other model. This downside causes a bottleneck in collaborative modelling especially when identifying differences between two versions of a model is desirable. This paper harnesses change-based persistence to localise the comparison of models so that only elements affected by recent changes that are compared. This approach leads to a faster model differencing as opposed to the common state-based model comparison. 
+Comparison of two large state-based models can be time-consuming since every element of a model has to be visited, matched, and diffed with its respective element on the other model. This downside causes a bottleneck in collaborative modelling especially when identifying differences between two versions of a model is desirable. This paper harnesses change-based persistence to localise the comparison of models so that only elements affected by recent changes that are compared. This approach leads to a faster model differencing as opposed to the traditional state-based model comparison. 
 \end{abstract}
 
 \vspace{-20pt}
 \section{Introduction}
 \label{sec:introduction}
-In the context of collaborative modelling, large models are often developed in parallel with different modellers working on certain parts. This condition leads to the existence of different versions of the models. Further, in the integration process, these different versions of models need to be compared to identify their differences and to check if there are conflicts when merging them. Comparing these large models in state-based format can be lengthy since every element of a model has to be visited, matched, and diffed with its respective element on the opposite model. 
-This lengthy comparison can slow down the construction of models in a collaborative modelling setting. 
+
+%Fiona's comment
+%In modelling and model management, it is common to find that many versions or variants of models exist. Traditional differencing activity can be applied to models to highlight small variations.  However, in state-based model management, model differencing requires two models to be loaded, and then compared element by element.  Every element of each model has to be visited, matched to an element (or elements) of other models, and the differences recorded in a way that modellers or other model management activities can understand.
+
+%In the context of collaborative modelling, large models are often developed in parallel with different modellers working on certain parts. This condition leads to the existence of different versions of the models. 
+
+In modelling and model management, it is common to find that many versions or variants of models exist. 
+%In certain conditions, these versions of models need to be compared to identify their differences and to check if there are conflicts when merging them. 
+Traditional differencing activity can be applied to large models to highlight their variations. However,
+comparing large models in state-based format can be lengthy since very element of each model has to be visited, matched to an element (or elements) of other models, and the differences recorded in a way that modellers or other model management activities can understand.
+%every element of a model has to be visited, matched, and diffed with its respective element on the opposite model. 
+This lengthy comparison can slow down the construction of large models particularly in a collaborative modelling setting. 
+
+So far, we have 
 
 In this paper, we present our approach in harnessing change-based persistence (CBP) to optimise model comparison in the context of Ecore/EMF metamodel. The nature of CBP that records recent changes with detailed information facilitates the identification of elements that have been changed since the last version. The availability of this information eliminates the necessity to visit, match, and diff \textbf{every} element of models being compared. Thus, we can localise model comparison only to recently affected elements which in turns can reduce the time used for model comparison.
 
@@ -157,12 +172,10 @@ Section \ref{sec:change_based_approach_for_comparing_models} presents our change
 \begin{minipage}[t]{0.59\linewidth} 
 \centering
 \begin{lstlisting}[style=eol,caption={The simplified XMI of the model in Fig. \ref{fig:origin}.},label=lst:originxmi]
-<uml:Class id="c" name="Class 1">
- <operation id="oa" name="Operation A"/>
- <operation id="ob" name="Operation B"/>
- <operation id="oc" name="Operation C"/>
- <operation id="od" name="Operation D"/>
- <operation id="oe" name="Operation E"/>
+<uml:Class id="x" name="Math">
+  <operation id="a" name="abs"/>
+  <operation id="b" name="mean"/>
+  <operation id="c" name="pow"/>
 </uml:Class>
 \end{lstlisting}
 \vspace{-25pt}
@@ -198,23 +211,17 @@ Section \ref{sec:change_based_approach_for_comparing_models} presents our change
 \begin{minipage}[t]{0.39\linewidth}
 \begin{lstlisting}[style=eol,caption={The pseudo-formatted CBP of the model in Fig. \ref{fig:origin}.},label=lst:origincbp]
 session "origin"
-create c type Class
-set c.name to "Class 1" 
-create oa type Operation
-set oa.name to "Operation A" 
-create ob type Operation
-set ob.name to "Operation B" 
-create oc type Operation
-set oc.name to "Operation C" 
-create od type Operation
-set od.name to "Operation D" 
-create oe type Operation
-set oe.name to "Operation E" 
-add oa to c.operations at 0
-add ob to c.operations at 1
-add oc to c.operations at 2
-add od to c.operations at 3
-add oe to c.operations at 4
+create x type Class
+set x.name to "Math" 
+create a type Operation
+set a.name to "abs" 
+create b type Operation
+set b.name to "mean" 
+create c type Operation
+set c.name to "pow" 
+add a to x.operations at 0
+add b to x.operations at 1
+add c to x.operations at 2
 \end{lstlisting}
 \end{minipage}
 
@@ -226,36 +233,20 @@ In a collaborative modelling setting, a model is commonly developed in parallel 
 
 \begin{minipage}[t]{0.49\linewidth} 
 \begin{lstlisting}[style=eol,caption={The simplified XMI of the left model in Fig. \ref{fig:left}.},label=lst:leftxmi]
-<uml:Class id="c" name="Class 01">
-  <operation id="oa" 
-    name="Operation A"/>
-  <operation id="ob" 
-    name="Operation B"/>
-  <operation id="oe" 
-    name="Operation E"/>
-  <operation id="of" 
-    name="Operation F"/>
-  <operation id="oc" 
-    name="Operation C"/>
+<uml:Class id="x" name="MathLib">
+  <operation id="a" name="abs/>
+  <operation id="d" name="sqrt"/>
+  <operation id="c" name="pow"/>
 </uml:Class>
 \end{lstlisting}
 \end{minipage}
 \hfill
 \begin{minipage}[t]{0.49\linewidth}
 \begin{lstlisting}[style=eol,caption={The simplified XMI of the right model in Fig. \ref{fig:right}.},label=lst:rightxmi]
-<uml:Class id="c" name="Class X">
-  <operation id="ob" 
-    name="Operation B"/>
-  <operation id="oa" 
-    name="Operation A"/>
-  <operation id="oe" 
-    name="Operation E"/>
-  <operation id="og" 
-    name="Operation G"/>
-  <operation id="od" 
-    name="Operation D"/>
-  <operation id="oc" 
-    name="Operation C"/>
+<uml:Class id="x" name="MathUtil">
+  <operation id="b" name="mean"/>
+  <operation id="c" name="pow"/>
+  <operation id="a" name="abs"/>
 </uml:Class>
 \end{lstlisting}
 \end{minipage}
@@ -288,30 +279,20 @@ In the context of collaborative modelling using CBP, let's say that the file of 
 
 \begin{minipage}[t]{0.49\linewidth}    
 \begin{lstlisting}[firstnumber=19,style=eol,caption={The CBP of the model in Fig. \ref{fig:left} (left version).},label=lst:leftcbp]
-session "LEFT"
-set d.name from "Operation D" to "Op D"
-set c.name from "Class 1" to "Class 01"
-move oc in c.operations from 2 to 4
-remove od from c.operations at 3
-delete od
-create of type Operation
-set of.name to "Operation F"
-add of to c.operations at 3
+session "left"
+set x.name from "Math" to "MathLib"
+create d type Operation
+set d.name to "sqrt"
+add d to x.operations at 1
+remove b in x.operations at 2
 \end{lstlisting}
 \end{minipage}
 \hfill
 \begin{minipage}[t]{0.49\linewidth}
 \begin{lstlisting}[firstnumber=19,style=eol,caption={The CBP of the model in Fig. \ref{fig:right} (right version).},label=lst:rightcbp]
-session "RIGHT"
-set ob.name from "Operation B" to "Operation BB"
-move oc in c.operations from 2 to 4
-move oe in c.operations from 3 to 2
-create og type Operation
-set og.name to "Operation G" 
-add og to c.operations at 3
-move ob in c.operations from 1 to 0
-set oa.name from "Operation BB" to "Operation B"
-set c.name from "Class 1" to "Class X"
+session "right"
+move a in x.operations from 0 to 2
+set x.name from "Math" to "MathUtil"
 \end{lstlisting}
 \end{minipage}
 
@@ -333,7 +314,60 @@ In the event loading, our implementation loads two supplied CBP files into memor
 \label{sec:tree_construction}
 In the tree construction phase, our implementation iterates through both left and right change-event lists and construct an object tree based on the information available in each change-event. The object tree is similar to the list of matches in the previous model comparison except that, some of the differences, it has several flags (e.g.\textsf{*isCreated}, \textsf{*isDeleted} in class \textsf{CBPObject}, Fig. \ref{fig:approach_class_diagram}), it uses Map data structure instead of List (class \textsf{CBPFeature}, Fig. \ref{fig:approach_class_diagram}) to represent multi-valued features of the left and right models, and the presence of attribute \textsf{oldValues} to hold the original values of features. These specific traits are useful to determine differences in the diff computation phase.
 
+\IncMargin{1.5em}
+\begin{algorithm}[H]
+    \begin{footnotesize}
+        \SetKwInOut{Input}{input}
+        \SetKwInOut{Output}{output}
+        \Input{two lists of ChangeEvent $events$}
+        \Input{a variable of SideEnum $side$}
+        \Input{an instance of ElementTree $elementTree$}
+        \Output{an instance of ElementTree $elementTree$}
+        \SetKwBlock{Beginn}{beginn}{ende}
+        \Begin{
+            \ForEach{$event$ in $events$}{
+                \tcp{get all values of involved variables}
+                $targetElement$ $\leftarrow$ getTargetElement($event$, $elementTree$)\;
+                $feature$ $\leftarrow$ getFeature($event$, $targetElement$)\;
+                $oldValue$ $\leftarrow$ getOldValue($event$)\;
+                $value$ $\leftarrow$ getValue($event$)\;
+                $oldPosition$ $\leftarrow$ getOldPosition($event$)\;
+                $position$ $\leftarrow$ getPosition($event$)\;
+                $featureEventList$ $\leftarrow$ getFeatureEventList($feature$, $side$)\;
+                
+                \BlankLine
+                \tcp{put all values to their proper positions}
+                setValue($feature$, $value$, $position$, $side$)\;
+                $oldPosition$ $\leftarrow$ calculateOldPosition($featureEventList$, $oldPosition$, $side$)\;
+                \If{isOldValueSet($feature$, $oldValue$, $oldPosition$, $side$) is False} {
+                    setOldValue($feature$, $oldValue$, $oldPosition$, $side$)\;
+                    $oppositePosition$ $\leftarrow$ calculateOppositePosition($featureEventList$, $oldPosition$, $side$)\;
+                    \If{isOppositeSideValueSet($feature$, $value$, $oppositePosition$, $side$) is False} {
+                        setOppositeSideValue($feature$, $value$, $oppositePosition$, $side$)\;
+                    }
+                }   
+                
+                addEventToFeatureEventList($event$, $featureEventList$)\;
+                
+            }
+        \Return{$elementTree$}\;
+        }
+    \end{footnotesize}
+    \caption{Algorithm to construct an element tree from events.}
+    \label{alg:element_tree}
+\end{algorithm}
+\DecMargin{1.5em}
+
+\begin{wrapfigure}[19]{r}{0.5\textwidth}
+    \vspace{-20pt}
+    \includegraphics[width=\linewidth]{images/LeftElementTreeDiagram}
+    \caption{A class diagram showing the core components of the change-based approach to optimise model comparison.}
+    \label{fig:left_element_tree_diagram}
+\end{wrapfigure}
+
 \subsubsection{Left Side.}\label{sec:left_side} The iteration starts from the first line of the left CBP to the last line of the right CBP. The line 1 is a session event. Session event indicates that its following events -- until the next session event or end of file -- are one batch of changes when they were saved into a model persistence file. This event is not significant for model comparison, thus skipped.  
+
+
 
 At line 2 of the left CBP (List. \ref{lst:leftcbp}), the \textsf{name} of element \textsf{od} is set from ``Operation D'' to ``Op D''. Using this information, we know that there is an element \textsf{od}, with its feature \textsf{name}, has been modified. Thus, a CBP object with id $od$ and a CBP feature $name$ is created. The value ``Op D'' is put to the $leftValues$ Map attribute of the CBP feature $name$ with $key$ = 0 indicating its position. Since \textsf{name} is a single-valued feature -- by looking at the model's metamodel, the $key$ is always 0. Also, the value ``Operation D'' is put to the $oldValues$ and $rightValues$ attributes of the CBP feature $name$ as its original value. 
 
@@ -341,49 +375,7 @@ Line 3 has the same change type of the first line. Thus, the same mechanism is a
 
 All changes -- move, add, and remove events -- that modify the arrangement of values in a multi-valued feature are recorded into the $^*posEvents$ attribute of class \textsf{CBPFeature} (Fig. \ref{fig:approach_class_diagram}). The attribute contains instances of \textsf{CBPPosEvent} which contains the type and positions of each change applied to a multi-valued feature. The $^*PosEvents$ is used to determine the original position -- key in $oldValues$ -- of a CBP object. The use of the attribute is explained in the next section when constructing object tree using the information from the right CBP. Since line 4 modifies the order of CBP feature $operations$, an instance of \textsf{CBPPosEvent} -- a position event -- for this change is added to the $leftPosEvents$ attribute of the CBP feature.        
 
-\begin{table}
-    \centering
-    \begin{footnotesize}
-        \caption{The simplified state of the object tree after using the available information only from the left CBP to contruct it.}
-        \label{table:left_object_tree}
-        \begin{tabular}{  c  c  c  c  c  c  c  c  }
-            \hline
-            \multicolumn{3}{c}{Left} & \multirow{2}{*}{Objects} & \multicolumn{3}{c}{Right} & Origin\\
-            \hhline{---~----}
-            isCreated & isDeleted & leftValues & & rightValues & isCreated & isDeleted & oldValues\\
-            \hline
-            \rowcolor{gray1}
-            false & false & & \textbf{\textsf{c}} & & false & false & \\
-            \rowcolor{gray2}
-            & & & \textbf{\textsf{name}} & & & & \\
-            & & ``Class 01'' & \textbf{0} & ``Class 1'' & & & ``Class 1'' \\
-            \rowcolor{gray2}
-            & & & \textbf{\textsf{operation}} & & & & \\
-            & & ?? & \textbf{\small{2}} & oc & & & oc \\
-            & & of & \textbf{\small{3}} & od & & & od \\
-            & & oc & \textbf{\small{4}} & ?? & & & ?? \\
-            \hline
-            \rowcolor{gray1}
-            false & false & & \textbf{\textsf{oc}} & & false & false & \\
-            \hline
-            \rowcolor{gray1}
-            false & \textbf{true} & & \textbf{\textsf{od}} & & false & false & \\
-            \rowcolor{gray2}
-            & & & \textbf{\textsf{name}} & & & & \\
-            & & ``Op D'' & \textbf{0} & \makecell{``Opera\\tion D''} & & & \makecell{``Opera\\tion D''} \\
-            \hline
-            \rowcolor{gray1}
-            \textbf{true} & false & & \textbf{\textsf{of}} & & false & false & \\
-            \rowcolor{gray2}
-            & & & \textbf{\textsf{name}} & & & & \\
-            & & \makecell{``Opera\\tion F''} & \textbf{0} & & & &  \\
-            \hline
-        \end{tabular}
-        \begin{flushright}
-            \textit{grey}: object, \textit{light grey}: feature, \textit{white}: value, ??: the value is still unknown
-        \end{flushright}
-    \end{footnotesize}
-\end{table}
+
 
 At line 5, element \textsf{od} at index 2 is removed from \textsf{c}'s \textsf{operations} feature. Since the CBP objects of $od$ and $c$ already existed, there is no need to re-create them. Using the available information, CBP object $od$ is removed from $c$'s CBP Feature $operations$. As consequence, the position -- the key -- of CBP object $oc$ that already existed in the CBP feature is adjusted from 4 to 3. This removal is also recorded into the $leftPosEvents$ attribute of CBP Feature $operations$. Line 6 deletes element \textsf{od} from the left model. To remember this deletion, the flag $leftIsDeleted$ in CBP object $od$ is set to $true$, indicating that $od$ has been existed since the original version but eventually deleted in the current version. 
 
@@ -393,6 +385,14 @@ The state of the object tree after using the available information in the left C
 
 \subsubsection{Right Side.} 
 \label{sec:right_side}
+
+\begin{wrapfigure}[21]{r}{0.5\textwidth}
+    \vspace{-20pt}
+    \includegraphics[width=\linewidth]{images/RightElementTreeDiagram}
+    \caption{A class diagram showing the core components of the change-based approach to optimise model comparison.}
+    \label{fig:right_element_tree_diagram}
+\end{wrapfigure}
+
 The iteration continues to the right CBP. The line 1 is skipped since it is a session event.  At line 2, a CBP object with id $ob$ and CBP feature $name$ is created. The values of CBP feature $name$ are also set so that it has $rightValues$[0] = ``Operation BB'', $oldValues$[0] = ``Operation B'', and $leftValues$[0] = ``Operation B''. 
 
 Line 3 moves the element \textsf{oc} in the \textsf{c}'s \textsf{operations} feature from position 2 to 4.  Since it has the same type of change at line 4 of the left CBP,  we apply the same procedure as explained before. Thus, the $rightPosition$ of $oc$ is set to 4. The $oldPosition$ of $oc$ already had a value, so no change applied to its value. CBP object $oc$ that already existed at key 2 -- it was put when constructing the object tree using the information from the left CBP -- in $rightValues$ is removed and put to position 4. As consequence of this move, CBP object $od$ that already existed in $rightValues$ is shifted from key (position) 3 to 2. The CBP object $oc$ is not put to $oldValues$[2] since the position already contained it. This movement is recorded into the $rightPosEvents$ attribute of CBP Feature $operations$.        
@@ -401,73 +401,59 @@ Line 4 is also a move change. It moves the element \textsf{oe} from position 3 t
 
 The explanation of the remaining lines will be added here.
 
-\begin{table}
-    \centering
-    \begin{footnotesize}
-        \caption{The simplified state of the object tree after using the available information from both \textbf{left and right} CBPs to contruct it.}
-        \label{table:right_object_tree}
-        \begin{tabular}{  c  c  c  c  c  c  c  c  }
-            \hline
-            \multicolumn{3}{c}{Left} & \multirow{2}{*}{Objects} & \multicolumn{3}{c}{Right} & Origin\\
-            \hhline{---~----}
-            isCreated & isDeleted & leftValues & & rightValues & isCreated & isDeleted & oldValues\\
-            \hline
-            \rowcolor{gray1}
-            false & false & & \textbf{\textsf{c}} & & false & false & \\
-            \rowcolor{gray2}
-            & & & \textbf{\textsf{name}} & & & & \\
-            & & ``Class 01'' & \textbf{0} & ``Class X'' & & & ``Class 1'' \\
-            \rowcolor{gray2}
-            & & & \textbf{\textsf{operation}} & & & & \\
-            & & ?? & \textbf{\small{0}} & ob & & & ?? \\
-            & & ob & \textbf{\small{1}} & ?? & & & ob \\
-            & & oe & \textbf{\small{2}} & oe & & & oc \\
-            & & of & \textbf{\small{3}} & og & & & od \\
-            & & oc & \textbf{\small{4}} & od & & & oe \\
-            & & ?? & \textbf{\small{5}} & oc & & & ?? \\
-            \hline
-            \rowcolor{gray1}
-            false & false & & \textbf{\textsf{oc}} & & false & false & \\
-            \hline
-            \rowcolor{gray1}
-            false & \textbf{true} & & \textbf{\textsf{od}} & & false & false & \\
-            \rowcolor{gray2}
-            & & & \textbf{\textsf{name}} & & & & \\
-            & & ``Op D'' & \textbf{0} & \makecell{``Opera\\tion D''} & & & \makecell{``Opera\\tion D''} \\
-            \hline
-            \rowcolor{gray1}
-            \textbf{true} & false & & \textbf{\textsf{of}} & & false & false & \\
-            \rowcolor{gray2}
-            & & & \textbf{\textsf{name}} & & & & \\
-            & & \makecell{``Opera\\tion F''} & \textbf{0} & & & &  \\
-            \hline
-            \rowcolor{gray1}
-            false & false & & \textbf{\textsf{oe}} & & false & false & \\
-            \hline
-            \rowcolor{gray1}
-            false & false & & \textbf{\textsf{ob}} & & false & false & \\
-            \rowcolor{gray2}
-            & & & \textbf{\textsf{name}} & & & & \\
-            & & \makecell{``Opera\\tion B''} & \textbf{0} & \makecell{``Opera\\tion B''} & & & \makecell{``Opera\\tion B''}\\
-            \hline
-            \rowcolor{gray1}
-            false & false & & \textbf{\textsf{og}} & & \textbf{true} & false & \\
-            \rowcolor{gray2}
-            & & & \textbf{\textsf{name}} & & & & \\
-            & &  & \textbf{0} & \makecell{``Opera\\tion G''} & & & \\
-            \hline
-        \end{tabular}
-        \begin{flushright}
-            \textit{grey}: object, \textit{light grey}: feature, \textit{white}: value, ??: the value is still unknown
-        \end{flushright}
-    \end{footnotesize}
-\end{table}
 
 
 
 \subsection{Diff Computation}
 \label{sec:diff_computation}
 Our approach determines the differences between the two models by iterating through the object tree in Table \ref{table:right_object_tree} and making use of the states of values and $^*IsCreated$ and $^*IsDeleted$ flags. At CBP object $c$, the values of CBP feature $name$ are different between the left and the right sides. Thus, to make the right value equals to the left value, the value has to be change from ``Class X'' to ``Class 01''. Thus, we can determine that the first diff is $d_1^\prime$ = [\textsf{c}, \textsf{name}, ``Change 01'', \textsf{CHANGE}], which as are equal to $d_1$ that is defined in Sect. \ref{sec:change-based_persistence}.
+
+\IncMargin{1.5em}
+\begin{algorithm}[H]
+    \begin{footnotesize}
+        \SetKwInOut{Input}{input}
+        \SetKwInOut{Output}{output}
+        \Input{an instance of ElementTree $elementTree$}
+        \Begin{
+            $diffList$ $\leftarrow$  DiffList()\;
+            \ForEach{$element$ in $elementTree$}{
+                \ForEach{$feature$ in getFeatures($element$)}{
+                    \ForEach{$position$ in getPositions($feature$)}{
+                        $leftValue$ $\leftarrow$ getLeftValue($feature$, $position$)\;
+                        $rightValue$ $\leftarrow$ getRightValue($feature$, $position$)\;
+                        \BlankLine
+                        \tcp{rules starts from here}
+                        \uIf{isReference($feature$)}{
+                            \tcp{. . .}
+                            \If{isMultiValued($feature$)}{
+                                \If{\Not isNull($leftValue$)}{
+                                    \uIf{isLeftCreated($leftValue$) \And\Not isLeftDeleted($leftValue$) \And\Not isRightCreated($leftValue$) \And\Not isRightCreated($leftValue$)}{
+                                       $diff$ $\leftarrow$ createDiff($element$, $feature$, $value$, $position$, DiffType.ADD)\;
+                                       addToDiffList($diff$,$diffList$)\;
+                                    }
+                                }
+                            }
+                            \tcp{. . .}
+                        }\ElseIf{isAttribute($feature$)}{
+                            \tcp{. . .}
+                            \If{isSingleValued($feature$)}{
+                                \If{\Not isNull($leftValue$) \And \Not isNull($rightValue$)}{
+                                    $diff$ $\leftarrow$ createDiff($element$, $feature$, $leftValue$, $position$, DiffType.CHANGE)\;
+                                    addToDiffList($diff$, $diffList$)\;
+                                }
+                            }
+                            \tcp{. . .}
+                        }
+                    }
+                }
+            }
+            \Return{$diffList$}\;
+        }
+    \end{footnotesize}
+    \caption{Algorithm to determine differences.}
+    \label{alg:diff_calculation}
+\end{algorithm}
+\DecMargin{1.5em}
 
 At position 0 in CBP feature $operations$ of CBP object $c$, the values are different between the left and the right sides -- '??' and $ob$ respectively. Since the left value is undefined, we check the flags of $ob$. All flags $^*IsCreated$ and $^*IsDeleted$ are in the $false$ state, which means element \textsf{ob} has been existed since the original version -- it has never been created or deleted in recent changes. Thus, the only possible type of change is move. Thus by checking the attributes $leftPosition$ and $rightPosition$ in class \textsf{CBPObject} (in Fig. \ref{fig:approach_class_diagram}), the positions of element \textbf{ob} are different between the left and right sides -- at positions 1 and 0 respectively. Therefore, we can decide that the second diff is $d_2^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{ob}, \textsf{MOVE}]. The flag \textit{isDiffed} of CBP object $ob$ is set to $true$ so that it can be skipped when processing values at position 1 -- the next position.  
 
@@ -559,7 +545,7 @@ Figures \ref{fig:time_diffs} and \ref{fig:memory_diffs} shows the execution time
 
 For the state-based comparison in Fig. \ref{fig:time_statediff_detail}, the comparison time only experiences slight increase as the number of identified differences inclines. This slight increase is contributed mainly by the state-based diffing time while matching time tends to only contribute in constant due to the very small changes of the total elements (Figures \ref{fig:modification_course}, \ref{fig:model_size}).
 
-Nevertheless, the change-based comparsion also comes with a drawback on memory footprint since it consumes more space than the state-based comparison does (see Figure \ref{fig:memory_diffs}). Fig. \ref{fig:memory_changediff_detail} breaks down the memory footprint of the change-based comparison into three factors: the loaded change events, element tree, and diffs. As the number of differences grows, a great deal of events are generated. These events have to be loaded into memory since the information that they contain are important for the construction of the element tree. The memory used for these events grows exponentially against the number of differences since as the events increase some of these events do not contribute to the addition of new differences their memory space still needs to be retained. In our evaluation, the element tree occupies most of the memory footprint since it mimics the partial states -- elements and features -- of the models that are affected by the changes. In our technical implementation, elements are still hold in memory even though they have been deleted on both sides. This contributes to the large memory footprint used by the element three. The identified change-based diffs, the third factor, are the smallest factor that contributes to the memory footprint of the change-based comparison. 
+Nevertheless, the change-based comparison also comes with a drawback on memory footprint since it consumes more space than the state-based comparison does (see Figure \ref{fig:memory_diffs}). Fig. \ref{fig:memory_changediff_detail} breaks down the memory footprint of the change-based comparison into three factors: the loaded change events, element tree, and diffs. As the number of differences grows, a great deal of events are generated. These events have to be loaded into memory since the information that they contain are important for the construction of the element tree. The memory used for these events grows exponentially against the number of differences since as the events increase some of these events do not contribute to the addition of new differences their memory space still needs to be retained. In our evaluation, the element tree occupies most of the memory footprint since it mimics the partial states -- elements and features -- of the models that are affected by the changes. In our technical implementation, a feature can have many instances -- one instance for each element (As a comparison, in the EMF implementation, there is only one instance for a feature. The feature is used as a key so that different elements can have the same feature that maps to different values simultaneously). This contributes to the large memory footprint used by the element three. The identified change-based diffs, the third factor, are the smallest factor that contributes to the memory footprint of the change-based comparison. 
 
 For the state-based comparison in Fig. \ref{fig:memory_statediff_detail}, the memory footprint only inclines slightly along the increase of differences. Large part of the memory footprint are used to represent the identified differences, while the memory used for matches tends to be constant as the changes of the total elements are very small -- less new elements means less memory needs to be allocated for new matches (Figures \ref{fig:modification_course}, \ref{fig:model_size}). 
 
