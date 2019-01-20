@@ -6,6 +6,7 @@
 \documentclass{llncs}
 %
 \usepackage[table]{xcolor}
+\usepackage{cite}
 \usepackage{multirow}
 \usepackage{hhline}
 \usepackage{caption}
@@ -142,11 +143,11 @@ Alfa Yohannis et al.
 Comparison of two large state-based models can be time-consuming since every element of a model has to be visited, matched, and diffed with its respective element on the other model. This downside causes a bottleneck in collaborative modelling especially when identifying differences between two versions of a model is desirable. This paper harnesses change-based persistence to localise the comparison of models so that only elements affected by recent changes that are compared. This approach leads to a faster model differencing as opposed to the traditional state-based model comparison. 
 \end{abstract}
 
-\vspace{-20pt}
+\vspace{-10pt}
 \section{Introduction}
 \label{sec:introduction}
 
-\vspace{-10pt}
+\vspace{-5pt}
 %Fiona's comment
 %In modelling and model management, it is common to find that many versions or variants of models exist. Traditional differencing activity can be applied to models to highlight small variations.  However, in state-based model management, model differencing requires two models to be loaded, and then compared element by element.  Every element of each model has to be visited, matched to an element (or elements) of other models, and the differences recorded in a way that modellers or other model management activities can understand.
 
@@ -159,9 +160,10 @@ comparing large models in state-based format can be lengthy since very element o
 %every element of a model has to be visited, matched, and diffed with its respective element on the opposite model. 
 This lengthy comparison can slow down the construction of large models particularly in a collaborative modelling setting. 
 
-Yohannis et al.\cite{DBLP:conf/models/YohannisKP17} developed a change-based persistence (CBP), an alternative approach to persist EMF model in change-based format. Instead of persisting models in their final states, their approach persists models in their complete history of changes. However, this approach comes with a downside on model loading that it has to replay the complete history of a model in order obtain the model's eventual state. This issue has been tackled by ignoring changes that have no impact on the eventual states of models \cite{yohannis2018towards} and using hybrid persistence \cite{DBLP:conf/models/YohannisRPK18}.
+Yohannis et al.\cite{DBLP:conf/models/YohannisKP17,yohannis2018towards,DBLP:conf/models/YohannisRPK18} developed a change-based persistence (CBP), an alternative approach to persist EMF models \cite{steinberg2008emf} in change-based format. Instead of persisting models in their final states, the approach persists models in their complete history of changes. They argued that the incremental, detailed information contained in CBP can be exploited to support model comparison, incremental model transformation, and model analytics.
+%However, this approach comes with a downside on model loading that it has to replay the complete history of a model in order obtain the model's eventual state. This issue has been tackled by ignoring changes that have no impact on the eventual states of models \cite{} and using hybrid persistence \cite{}.
 
-In this paper, we present our approach in harnessing CBP to optimise model comparison in the context of Ecore/EMF metamodel. The nature of CBP that records recent changes with detailed information facilitates the identification of elements that have been changed since the last version. The availability of this information eliminates the necessity to visit, match, and diff \textbf{every} element of models being compared. Thus, we can localise model comparison only to recently affected elements which in turns can reduce the time used for model comparison.
+In this paper, we present our approach in harnessing CBP to optimise model comparison in the context of Ecore/EMF metamodel. The nature of CBP that records recent changes with detailed information facilitates the identification of elements that have been changed since the last version. The availability of this information eliminates the necessity to visit, match, and diff every element of models being compared. Thus, we can localise model comparison only to recently affected elements which in turns can reduce the time used for model comparison.
 
 This paper is structured as follows. Section \ref{sec:change-based_persistence} introduces the concept of change-based persistence. Sections \ref{sec:model_comparison} overviews of the traditional state-based approach to compare models. Section \ref{sec:change_based_approach_for_comparing_models} presents our change-based approach to optimise model comparison and its implementation. Section \ref{sec:evaluation} presents our experimental results and evaluation. Section \ref{sec:related_work} provides an overview of related work, and Section \ref{sec:conclusion_and_future_work} concludes with a discussion on directions for future work.
 
@@ -169,10 +171,10 @@ This paper is structured as follows. Section \ref{sec:change-based_persistence} 
 \section{Change-based Persistence}
 \label{sec:change-based_persistence}
 
-\vspace{-10pt}
+\vspace{-5pt}
 Change-based persistence is an alternative approach to the common state-based persistence (SBP) of models. Instead of persisting the last state of a model, CBP persists the overall history of changes of a model. For example, in SBP approach, when we save the UML class diagram in Fig. \ref{fig:origin} in standard XMI format, we only obtain the last state of the model as the List. \ref{lst:originxmi} shows. In contrast, when we develop the model in CBP approach, a system captures all the changes of the model and persists them into a CBP file as shown in List. \ref{lst:origincbp}\footnote{In implementation, the CBP is persisted in XML-like format, not in pseudo-format.}. The file consists of events generated by changes. Each change event contains information about the type of the operation applied as well the as values, elements, or features involved. Replaying the change events in List. \ref{lst:origincbp} produces the same model as in Fig. \ref{fig:origin}.
 
-\vspace{-10pt}
+\vspace{-20pt}
 \begin{minipage}[t]{0.59\linewidth} 
 \centering
 \begin{lstlisting}[style=eol,caption={The simplified XMI of the model in Fig. \ref{fig:origin}.},label=lst:originxmi]
@@ -229,31 +231,35 @@ add c to x.operations at 2
 \end{lstlisting}
 \end{minipage}
 
-\section{Model Comparison}
+\vspace{-5pt}
+\section{State-based Model Comparison}
 \label{sec:model_comparison}
+
+\vspace{-5pt}
 In a collaborative modelling setting, a model is commonly developed in parallel -- thus produces different versions. Let's say that the model in Fig. \ref{fig:origin} is modified by two different modellers in parallel. The first modeller produces the model in Fig. \ref{fig:left} (the left model), and the second one yields the model in Fig. \ref{fig:right} (the right model) producing XMI files as showed in List. \ref{lst:leftxmi} and List. \ref{lst:rightxmi} respectively.
 
+At some point, we want to compare these two models in order to identify their differences for analytics or conflicts when merging. The common approach to compare models is to create matches between the elements of both models and diff them \cite{DBLP:conf/sfm/BroschKLSWW12,emfcompare2018developer}. Generally, the matching process iterates through all the elements of the models being compared and matches them by their identifiers or through a similarity mechanism if they have none \cite{DBLP:conf/sfm/BroschKLSWW12,emfcompare2018developer}. After that, the diffing process then starts finding differences between the matched elements and all their features commonly using the Longest Common Subsequence (LCS) algorithms, e.g. \cite{DBLP:journals/algorithmica/Meyers86}. 
+
+\vspace{-10pt}
 \begin{minipage}[t]{0.49\linewidth} 
-\begin{lstlisting}[style=eol,caption={The simplified XMI of the left model in Fig. \ref{fig:left}.},label=lst:leftxmi]
-<uml:Class id="x" name="MathLib">
-  <operation id="a" name="abs/>
-  <operation id="d" name="sqrt"/>
-  <operation id="c" name="pow"/>
-</uml:Class>
-\end{lstlisting}
+    \begin{lstlisting}[style=eol,caption={The simplified XMI of the left model in Fig. \ref{fig:left}.},label=lst:leftxmi]
+    <uml:Class id="x" name="MathLib">
+    <operation id="a" name="abs/>
+    <operation id="d" name="sqrt"/>
+    <operation id="c" name="pow"/>
+    </uml:Class>
+    \end{lstlisting}
 \end{minipage}
 \hfill
 \begin{minipage}[t]{0.49\linewidth}
-\begin{lstlisting}[style=eol,caption={The simplified XMI of the right model in Fig. \ref{fig:right}.},label=lst:rightxmi]
-<uml:Class id="x" name="MathUtil">
-  <operation id="b" name="mean"/>
-  <operation id="c" name="pow"/>
-  <operation id="a" name="abs"/>
-</uml:Class>
-\end{lstlisting}
+    \begin{lstlisting}[style=eol,caption={The simplified XMI of the right model in Fig. \ref{fig:right}.},label=lst:rightxmi]
+    <uml:Class id="x" name="MathUtil">
+    <operation id="b" name="mean"/>
+    <operation id="c" name="pow"/>
+    <operation id="a" name="abs"/>
+    </uml:Class>
+    \end{lstlisting}
 \end{minipage}
-
-At some point, we want to compare these two models in order to identify their differences for analytics or conflicts when merging. The common approach to compare models is to create matches between the elements of both models and diff them \cite{DBLP:conf/sfm/BroschKLSWW12,emfcompare2018developer}. Generally, the matching process iterates through all the elements of the models being compared and matches them by their identifiers or through a similarity mechanism if they have none \cite{DBLP:conf/sfm/BroschKLSWW12,emfcompare2018developer}. After that, the diffing process then starts finding differences between the matched elements and all their features commonly using the Longest Common Subsequence (LCS) algorithms, e.g. \cite{DBLP:journals/algorithmica/Meyers86}. 
 
 In our example, the matching iterates through all the elements of both model using their identifiers. The matching process yields 3 matches, $m_1$ = (\textsf{x}, \textsf{x}), $m_2$ = (\textsf{a}, \textsf{a}), and $m_3$ = (\textsf{c}, \textsf{c}), and 2 umatched elements, $um_1$ = (\textsf{d},) and $um_2$ = (, \textsf{b}). The diffing process then iterates through all the matches and unmatches. Using LCS algorithm, in the first match, it identifies that both elements \textsf{x} are different in their \textsf{name} and \textsf{operations} features. 
 The left \textsf{x}'s \textsf{name} is ``MathLib'' while the other \textsf{x}'s \textsf{name} is ``MathUtil'' (diff $d_1$). The \textsf{operations} features are different in their contents -- the left \textsf{operations} feature does not contain elements \textsf{b} (diff $d_2$), the left \textsf{operations} feature contains element \textsf{d} 
@@ -262,21 +268,26 @@ that does not exist in the right \textsf{operations} (diff $d_3$), and the posit
 Similar to EMF Compare \cite{emfcompare2018developer}, this paper view a left model as a reference model, which means that differences are expressed as changes applied to a right model so that it equals to a reference model -- a left model. These changes share a number of common elements: \textsf{Match}, \textsf{LeftFeature}, \textsf{RightFeature} \textsf{LeftPosition}, \textsf{RightPosition}, \textsf{LeftValue}, \textsf{RightValue}, and \textsf{Kind}. \textit{Match} is the match in which diffing is performed. Since elements' identifiers are used to match elements, the identifier is used to identify the match. \textit{*Feature} and \textit{*Value} are the feature and value involved in a difference. \textsf{*Position} is the position of a value in a feature. \textit{Kind} is the type of a differences. It can be one of these types: \textsf{CHANGE}, \textsf{ADD}, \textsf{DELETE}, and \textsf{MOVE}. \textsf{CHANGE} means a pair of features -- single-valued attributes or non-containment references -- are different in their values. \textsf{ADD} indicates that a value does not exists in the right model thus it requires an addition of the value. \textsf{DELETE} is the counterpart of \textsf{ADD}. \textsf{MOVE} indicates that a matched elements are different in their locations, whether they are in the same features or cross features. 
     
 Based on these definitions, we formalise the diffs identified previously as $d_n$ = [$Match_n$, $LeftFeature_n$, $RightFeature_n$, $LeftPosition_n$, $RightPosition_n$, $LeftValue_n$, $RightValue_n$, $Kind_n$]. Thus, $d_1$ =  [\textsf{x}, \textsf{name}, \textsf{name}, 0, 0, ``MathLib'', ``Mathutil'', \textsf{CHANGE}], $d_2$ = [\textsf{x}, \textsf{operations}, \textsf{operations}, -1, 0, \textsf{null}, \textsf{b}, \textsf{DELETE}], $d_3$ = [\textsf{x}, \textsf{operations}, \textsf{operations}, 1, -1, \textsf{d}, \textsf{null}, \textsf{ADD}], and $d_4$ = [\textsf{x}, \textsf{operations}, \textsf{operations}, 2, 1, \textsf{c}, \textsf{c}, \textsf{MOVE}]. Fig. \ref{fig:xmi_comparison} depicts the mapping of these diffs on the left and right models. Applying these diffs as changes to the right model will transform it into the left model.  
+
+\vspace{-20pt}
  \begin{figure}
      \includegraphics[width=\linewidth]{images/XmiComparison}
      \caption{A model comparison of the left and right models in Listings \ref{lst:leftxmi} and \ref{lst:rightxmi}.}
      \label{fig:xmi_comparison}
  \end{figure}
  
+\vspace{-20pt}
 \section{Change-based Approach for Comparing Models}
 \label{sec:change_based_approach_for_comparing_models}
 
+\vspace{-20pt}
  \begin{figure}
     \includegraphics[width=\linewidth]{images/VCS}
     \caption{A case of the use of CBP in a collaborative modelling.}
     \label{fig:vcs}
 \end{figure}
 
+\vspace{-10pt}
 In the context of collaborative modelling using CBP, let's say that the file of the CBP in \ref{lst:origincbp} already existed in a text-based Version Control System (VCS) server (Fig. \ref{fig:vcs}). Both modellers checkout the original CBP (steps 1 and 2) and modify it (steps 3 and 4). Changes made by the left and right modellers will be appended to the original CBP producing two different CBP representation as displayed in Listings \ref{lst:leftcbp} and \ref{lst:rightcbp}\footnote{Both CBPs only present the changes after the last line of the original version (start from line 19). In implementation, the changes are appended to the original version.} -- capturing different courses of modification made by the modellers. The right developer then commits her work (original + right version) to the VCS. Since there is no new commit on the VCS, the commit process is straightforward (step 5). The left developer then decide to also commit his work (original + left version) to the VCS, thus his machine downloads the current version from the server (step 6). However, since the original version has been updated since his last checkout, he has to perform a model comparison to check the differences, and possibly conflicts, between his version (original + left version) and the updated original version (original + right version). 
 
 \begin{minipage}[t]{0.49\linewidth}    
@@ -287,6 +298,7 @@ create d type Operation
 set d.name to "sqrt"
 add d to x.operations at 1
 remove b in x.operations at 2
+delete b
 \end{lstlisting}
 \end{minipage}
 \hfill
@@ -302,51 +314,50 @@ Since both modellers work using CBP, we can exploit the persistence to improve t
 
 In performing comparison, our approach has three phases: event loading, element tree construction, and diff computation. These phases are represented as methods \textsf{loadEvents}, \textsf{contructElementTree}, and \textsf{computeDifferences} methods in class \textsf{CBPComparison} in Fig. \ref{fig:approach_class_diagram}. 
 
+\vspace{-10pt}
 \begin{figure}
     \includegraphics[width=\linewidth]{images/TreeClassDiagram}
     \caption{A class diagram showing the core components of the change-based approach to optimise model comparison.}
     \label{fig:approach_class_diagram}
 \end{figure}
 
+\vspace{-20pt}
 \subsection{Event Loading}
 \label{sec:event_loading}
 In the event loading, our implementation loads two supplied CBP files into memory as change-event instances of the class \textsf{ChangeEvent} in Fig. \ref{fig:approach_class_diagram}. Not all lines are converted into change events. Only lines starting from the position where the two files are different are loaded as change-events. In this case, lines 1-12 in List. \ref{lst:origincbp} are not loaded. Only lines starting from line 13 in Listings \ref{lst:leftcbp} and \ref{lst:rightcbp} are loaded, yielding two lists -- left and right -- of change events. 
 
 \subsection{Element Tree Construction}
 \label{sec:tree_construction}
-In the tree construction phase, our implementation iterates through both left and right change-event lists and construct an element tree based on the information available in each change-event.
-
-
- The element tree is similar to the list of matches in the previous model comparison except that, some of the differences, it has several flags (e.g.\textsf{*isCreated}, \textsf{*isDeleted} in class \textsf{CBPObject}, Fig. \ref{fig:approach_class_diagram}), it uses Map data structure instead of List (class \textsf{CBPFeature}, Fig. \ref{fig:approach_class_diagram}) to represent multi-valued features of the left and right models, and the presence of attribute \textsf{oldValues} to hold the original values of features. These specific traits are useful to determine differences in the diff computation phase.
+An element tree is similar to the list of matches in the previous model comparison except that, some of the differences, it has several flags (e.g.\textsf{*isCreated}, \textsf{*isDeleted} in class \textsf{Element}, Fig. \ref{fig:approach_class_diagram}), it uses Map data structure instead of List (class \textsf{Feature}, Fig. \ref{fig:approach_class_diagram}) to represent multi-valued features of the left and right models, and the presence of attribute \textsf{oldValues} to hold the original values of features. These specific features are useful to determine differences in the diff computation phase.
 
 \IncMargin{1.5em}
 \begin{algorithm}[H]
     \begin{footnotesize}
         \SetKwInOut{Input}{input}
         \SetKwInOut{Output}{output}
-        \Input{two lists of ChangeEvent $events$}
-        \Input{a variable of SideEnum $side$}
+        \Input{a list of ChangeEvent $events$}
+        \Input{an enumeration of Side $side$}
         \Input{an instance of ElementTree $elementTree$}
         \Output{an instance of ElementTree $elementTree$}
         \SetKwBlock{Beginn}{beginn}{ende}
         \Begin{
             \ForEach{$event$ in $events$}{
-                \tcp{get all values of involved variables}
-                $targetElement$ $\leftarrow$ getTargetElement($event$, $elementTree$)\;
-                $feature$ $\leftarrow$ getFeature($event$, $targetElement$)\;
-                $oldValue$ $\leftarrow$ getOldValue($event$)\;
+                $targetElement$ $\leftarrow$ getOrCreateNewTargetElement($event$, $elementTree$)\;
+                $feature$ $\leftarrow$ getOrCreateNewFeature($event$, $targetElement$)\;
                 $value$ $\leftarrow$ getValue($event$)\;
-                $oldPosition$ $\leftarrow$ getOldPosition($event$)\;
+                $previousValue$ $\leftarrow$ getPreviousValue($event$)\;
                 $position$ $\leftarrow$ getPosition($event$)\;
+                $previousPosition$ $\leftarrow$ getPreviousPosition($event$)\;
                 $featureEventList$ $\leftarrow$ getFeatureEventList($feature$, $side$)\;
                 
                 \BlankLine
                 \tcp{put all values to their proper positions}
-                setValue($feature$, $value$, $position$, $side$)\;
-                $oldPosition$ $\leftarrow$ calculateOldPosition($featureEventList$, $oldPosition$, $side$)\;
-                \If{isOldValueSet($feature$, $oldValue$, $oldPosition$, $side$) is False} {
-                    setOldValue($feature$, $oldValue$, $oldPosition$, $side$)\;
-                    $oppositePosition$ $\leftarrow$ calculateOppositePosition($featureEventList$, $oldPosition$, $side$)\;
+                updateTree($targetElement$, $feature$, $value$, $position$, $side$)\;
+                $oldPosition$ $\leftarrow$ calculateOldPosition($featureEventList$, $previousPosition$, $side$)\;
+                \If{\Not isCreated($value$, $side$) \And isOldValueSet($feature$, $previousValue$, $previousPosition$, $side$) \Is false} {
+                    setOldValue($feature$, $previousValue$, $oldPosition$, $side$)\;
+                    $oppositeFeatureEventList$ $\leftarrow$ getOppositeFeatureEventList($feature$, $side$)\;
+                    $oppositePosition$ $\leftarrow$ calculateOppositePosition($oppositeFeatureEventList$, $oldPosition$, $side$)\;
                     \If{isOppositeSideValueSet($feature$, $value$, $oppositePosition$, $side$) is False} {
                         setOppositeSideValue($feature$, $value$, $oppositePosition$, $side$)\;
                     }
@@ -363,6 +374,20 @@ In the tree construction phase, our implementation iterates through both left an
 \end{algorithm}
 \DecMargin{1.5em}
 
+The construction of the element tree execute the following outline. First, an empty element tree is created. After that, the process iterates through all left model's change events and uses the information contained in the change events to construct the partial states of the left, original, and right models. After finish with the left change events, the process then iterates the change events of the right model. Similarly, using the information available in the right change events, the process updates the partial states of the right, original model, and left models. 
+
+The element three construction conforms to the Alg. \ref{alg:element_tree}. The selection of side which side, left or right change events, that is executed first depends on the \textsf{Side} enumeration value -- \textsf{left} or \textsf{right} -- passed through the parameter \textsf{side} (the second input parameter). The algorithm also receives an input of the change events \textsf{events} that are to be iterated and the element tree \textsf{elementTree} that has been instantiated before, and then return the \textsf{elementTree} as an output after updating it.
+
+For each \textsf{event} in the \textsf{events}, we collects information needed to build up the element tree (lines 3-9), such as \textsf{targetElement}, \textsf{feature}, \textsf{value}, \textsf{previousValue}, \textsf{position}, and \textsf{previousPosition}. The \textsf{targetElement} is the element modified by a change event (e.g. \textsf{x} and \textsf{d} in List. \ref{lst:leftcbp}). This \textsf{targetElement} -- an instance of class Element in Fig. \ref{fig:approach_class_diagram} -- is retrieved from the \textsf{elementTree} if it already exists, otherwise a new one is created and added to the \textsf{elementTree} (line 3). In this step also we set the flags \textsf{*IsCreated} and \textsf{*IsDeleted} of the element in Fig. \ref{fig:approach_class_diagram}. For example, if the type of the event is \textsf{create} then \textsf{*IsCreated} is set to \textsf{true}. The \textsf{feature} -- an instance of class Feature in Fig. \ref{fig:approach_class_diagram} -- represents the target element's feature (e.g. \textsf{name} and \textsf{operations} in List. \ref{lst:leftcbp}) modified by a change event. It is  retrieved from the \textsf{targetElement}'s feature list, and a new one is created and added to the \textsf{targetElement}'s feature list, if it has not existed yet (line 5). 
+
+The \textsf{value} is the value assigned to the feature in a change event (line 5, Alg. \ref{alg:element_tree}). The \textsf{value} can be type of \textsf{Element} (e.g. elements \textsf{b} and  \textsf{d}, lines 17-18, List. \ref{lst:leftcbp}) or primitive (e.g. the String ``MathLib'' at line 14 in the List. \ref{lst:leftcbp}). The \textsf{previousValue} is similar to the \textsf{value} except that it represents the previous value of the modified feature (line 6, Alg. \ref{alg:element_tree}). The \textsf{previousValue} is not defined if there is no previous value has been assigned. If the type of \textsf{value} and \textsf{previousValue} is \textsf{Element}, the elements that they represents are retrieved from the \textsf{elementTree} otherwise new instances are created if they are contained yet in the \textsf{elementTree}. Not every change event has \textsf{value}, particularly event with type \textsf{add} or \textsf{delete} as it only modifies a target element not the element's feature.
+
+The \textsf{position} is the position assigned by a change event to a value in a feature, while \textsf{previousPosition} is the previous position of the value (lines 7-8, Alg. \ref{alg:element_tree}). In one change event, we can get both \textsf{position} and \textsf{previousPosition} or only one of them depends on the type of the change event. For example, we can only obtain that the \textsf{position} of \textsf{d} is 1 (line 17 in in the List. \ref{lst:leftcbp}) as the change event type is \textsf{add}. In \textsf{remove} change event, we can only get the \textsf{previousPosition} of \textsf{b}, that is 2 (line 17 in in the List. \ref{lst:leftcbp}), as the element does not exists anymore in the left model. We can obtain both of them only in a \textsf{move} change event as an element is moved from a previous position to a new one (line 14 in in the List. \ref{lst:rightcbp}). For a single-valued feature, the \textsf{position} and \textsf{previousPosition} are always 0 as the feature can only contains a value. 
+
+At line 9, we retrieve the \textsf{featureEventList} from the \textsf{feature} to be added later with the current \textsf{event} (line 19). The \textsf{featureEventList} is a list -- a history -- of change events that have been processed specific to the \textsf{feature} on the defined \textsf{side}. Using the obtained \textsf{targetElement}, \textsf{feature}, \textsf{value}, and \textsf{position}, the process then updates the state of the \textsf{elementTree} on the selected \textsf{side} (line 10). After that, it calculates back the original position of a value using the \textsf{featureEventList} and \textsf{previousPosition} (line 11). If the value at \textsf{oldPosition} in the \textsf{feature} has not been set, then the algorithm sets the \textsf{feature} with the \textsf{previousValue} at the \textsf{oldPosition} in the partial state of the original model (lines 12-13). At lines 14-18, the algorithm also does the same thing to the opposite side -- if the current \textsf{side} is \textsf{left} then it is \textsf{right}.  
+
+To better understand how the algorithm works, we explain its execution using both change events in the Listings \ref{lst:leftcbp} and \ref{lst:rightcbp}. We start from the left change events. 
+
 \begin{wrapfigure}[19]{r}{0.5\textwidth}
     \vspace{-20pt}
     \includegraphics[width=\linewidth]{images/LeftElementTreeDiagram}
@@ -370,23 +395,27 @@ In the tree construction phase, our implementation iterates through both left an
     \label{fig:left_element_tree_diagram}
 \end{wrapfigure}
 
-\subsubsection{Left Side.}\label{sec:left_side} The iteration starts from the first line of the left CBP to the last line of the right CBP. The line 1 is a session event. Session event indicates that its following events -- until the next session event or end of file -- are one batch of changes when they were saved into a model persistence file. This event is not significant for model comparison, thus skipped.  
+\vspace{-10pt}
+\subsubsection{Left Side.}\label{sec:left_side} In List. \ref{lst:leftcbp}, the first event is a \textsf{session} event (line 13). \textsf{Session} event indicates that its following events -- until the next session event or end of file -- are one batch of changes when they were persisted into a change-based persistence file. This event is not significant for model comparison, thus skipped. 
+
+In the next event, \texttt{\small \textbf{set} x.name \textbf{from} "Math" \textbf{to} "MathLib"} (line 14), we can identify that there is an element with id \textsf{x} that has been existed from the original model. It has a feature \textsf{name} with a value ``Math'' in the original model and has been changed to ``MathLib'' in the left model. Since the element \textsf{x} has not existed in the $elementThree$, we create its instance of \textsf{Element} and also its feature \textsf{name}. We set the value of the feature \textsf{name} to ``MathLib'' and also set it to ``Math'' in the partial state of the original model -- it has not been set before. As the same feature in the right side also has not been set, we set it to ``Math'' as well.          
+
+In the event at line 15, \texttt{\small \textbf{create} d \textbf{type} Operation}, we can indentify that there an element with id \textsf{d} has been created. We also update the \textsf{elementTree} to include this element and set the element's flag \textsf{leftIsCreated} to \textsf{true}. In the event at line 16, \texttt{\small \textbf{set} d.name \textbf{to} "sqrt"}, we can identify that element \textsf{d}'s feature \textsf{name} has been set to ``sqrt''. Thus, we update the \textsf{d}'s feature \textsf{name} in the \textsf{elementTree}. From the event at line 1, \texttt{\small \textbf{add} d \textbf{to} x.operations \textbf{at} 1}, we can deduce that element \textsf{d} is added to position 1 in the element \textsf{x}'s feature \textsf{operations}. Thus, we assign \textsf{d} to element \textsf{x}'s feature \textsf{operations} at position 1 in the \textsf{elementTree}. As \textsf{d} is a new element that only exists in the left model, we do not update changes of this element to the original and right models. 
+
+From the event at line 18, \texttt{\small \textbf{remove} b \textbf{in} x.operations \textbf{at} 2}, we can identify that there is element \textsf{b} in the original model, but it is deleted in the left model. The position of element \textsf{b} in the original model is calculated by comparing its position to the previous change events of feature that contains the element \textsf{b}.  
+
+
+%session "left"
+%set x.name from "Math" to "MathLib"
+%create d type Operation
+%set d.name to "sqrt"
+%add d to x.operations at 1
+%remove b in x.operations at 2
+
+At line 2, the event  , there is an element with id \textsf{x}. The element has a feature \textsf{name} with values ``Math'' in its original model and ``MathLib'' in its eventual left version. Also, from the event \textsf{\small \textbf{move} a \textbf{in} x.operations \textbf{from} 0 \textbf{to} 2}, there is an element with id \textsf{a}, and the element is contained in in the feature \textsf{operations} of element \textsf{x}. 
 
 
 
-At line 2 of the left CBP (List. \ref{lst:leftcbp}), the \textsf{name} of element \textsf{od} is set from ``Operation D'' to ``Op D''. Using this information, we know that there is an element \textsf{od}, with its feature \textsf{name}, has been modified. Thus, a CBP object with id $od$ and a CBP feature $name$ is created. The value ``Op D'' is put to the $leftValues$ Map attribute of the CBP feature $name$ with $key$ = 0 indicating its position. Since \textsf{name} is a single-valued feature -- by looking at the model's metamodel, the $key$ is always 0. Also, the value ``Operation D'' is put to the $oldValues$ and $rightValues$ attributes of the CBP feature $name$ as its original value. 
-
-Line 3 has the same change type of the first line. Thus, the same mechanism is also applied, producing a CBP object with id $c$ and a CBP feature $name$ with $leftValues$[0] = ``Class 01'' (key = 0, value = ``Class 01''), $oldValues$[0] = ``Class 1'', and $rightValues$[0] = ``Class 1''. At line 4, element \textsf{oc} in the \textsf{c}'s \textsf{operations} feature is moved from position 2 to 4. Thus, two CBP objects, $oc$ and $c$, are created, and a CBP feature $operations$ belongs to $c$ is also created. The $leftPosition$, $oldLeftPosition$, and $rightPosition$ of $oc$ is set to 4, 2, and 2 respectively, which means $oc$ is also put to $leftValues$, $oldValues$, and $rightValues$ with keys (positions) 4, 2, and 2 respectively. 
-
-All changes -- move, add, and remove events -- that modify the arrangement of values in a multi-valued feature are recorded into the $^*posEvents$ attribute of class \textsf{CBPFeature} (Fig. \ref{fig:approach_class_diagram}). The attribute contains instances of \textsf{CBPPosEvent} which contains the type and positions of each change applied to a multi-valued feature. The $^*PosEvents$ is used to determine the original position -- key in $oldValues$ -- of a CBP object. The use of the attribute is explained in the next section when constructing element tree using the information from the right CBP. Since line 4 modifies the order of CBP feature $operations$, an instance of \textsf{CBPPosEvent} -- a position event -- for this change is added to the $leftPosEvents$ attribute of the CBP feature.        
-
-
-
-At line 5, element \textsf{od} at index 2 is removed from \textsf{c}'s \textsf{operations} feature. Since the CBP objects of $od$ and $c$ already existed, there is no need to re-create them. Using the available information, CBP object $od$ is removed from $c$'s CBP Feature $operations$. As consequence, the position -- the key -- of CBP object $oc$ that already existed in the CBP feature is adjusted from 4 to 3. This removal is also recorded into the $leftPosEvents$ attribute of CBP Feature $operations$. Line 6 deletes element \textsf{od} from the left model. To remember this deletion, the flag $leftIsDeleted$ in CBP object $od$ is set to $true$, indicating that $od$ has been existed since the original version but eventually deleted in the current version. 
-
-Lines 7 to 9 create an \textsf{Operation} with id \textsf{of}, set its feature \textsf{name} to ``Operation F'', and add it to \textsf{c}'s feature \textsf{Operations} at position 3. As consequence, an CBP object $of$ is created. Its $leftIsCreated$ is set to $true$, indicating that the element is created in the current version. The CBP feature $name$ of $of$ is also created and its value is set to ``Operation F''. The CBP object $of$ then is added to $c$'s CBP feature $operations$ at position 3, moving the CBP object $oc$ from position 3 back to 4. This addition is also recorded into the $leftPosEvents$ attribute of CBP Feature $operations$.
-
-The state of the element tree after using the available information in the left CBP to construct it is summarised in Table \ref{table:left_object_tree}. The grey, light grey, and white lines represent CBP object, CBP feature, and value respectively. The values of CBP feature $operations$ refer/point to the respective CBP objects. The `??' symbol indicates that the value at its position is still unknown.
 
 \subsubsection{Right Side.} 
 \label{sec:right_side}
@@ -399,15 +428,6 @@ The state of the element tree after using the available information in the left 
 \end{wrapfigure}
 
 The iteration continues to the right CBP. The line 1 is skipped since it is a session event.  At line 2, a CBP object with id $ob$ and CBP feature $name$ is created. The values of CBP feature $name$ are also set so that it has $rightValues$[0] = ``Operation BB'', $oldValues$[0] = ``Operation B'', and $leftValues$[0] = ``Operation B''. 
-
-Line 3 moves the element \textsf{oc} in the \textsf{c}'s \textsf{operations} feature from position 2 to 4.  Since it has the same type of change at line 4 of the left CBP,  we apply the same procedure as explained before. Thus, the $rightPosition$ of $oc$ is set to 4. The $oldPosition$ of $oc$ already had a value, so no change applied to its value. CBP object $oc$ that already existed at key 2 -- it was put when constructing the element tree using the information from the left CBP -- in $rightValues$ is removed and put to position 4. As consequence of this move, CBP object $od$ that already existed in $rightValues$ is shifted from key (position) 3 to 2. The CBP object $oc$ is not put to $oldValues$[2] since the position already contained it. This movement is recorded into the $rightPosEvents$ attribute of CBP Feature $operations$.        
-
-Line 4 is also a move change. It moves the element \textsf{oe} from position 3 to 2 in the \textsf{c}'s \textsf{operations}. Since it is the first the element \textsf{oe} is introduced, a CBP object with id $oe$ is created. The CBP object is added to $rightValues$ at position 2. The challenge then comes when we want to determine the original position of $oe$ -- its position in $oldValues$. Position 3 is not its original position since it has been shifted down from 4 to 3 because of the previous line movement -- the move of CBP object $oc$. To determine that original position of $oe$ is 4, we have recorded all.
-
-The explanation of the remaining lines will be added here.
-
-
-
 
 \subsection{Diff Computation}
 \label{sec:diff_computation}
@@ -460,7 +480,7 @@ Our approach determines the differences between the two models by iterating thro
 \end{algorithm}
 \DecMargin{1.5em}
 
-At position 0 in CBP feature $operations$ of CBP object $c$, the values are different between the left and the right sides -- '??' and $ob$ respectively. Since the left value is undefined, we check the flags of $ob$. All flags $^*IsCreated$ and $^*IsDeleted$ are in the $false$ state, which means element \textsf{ob} has been existed since the original version -- it has never been created or deleted in recent changes. Thus, the only possible type of change is move. Thus by checking the attributes $leftPosition$ and $rightPosition$ in class \textsf{CBPObject} (in Fig. \ref{fig:approach_class_diagram}), the positions of element \textbf{ob} are different between the left and right sides -- at positions 1 and 0 respectively. Therefore, we can decide that the second diff is $d_2^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{ob}, \textsf{MOVE}]. The flag \textit{isDiffed} of CBP object $ob$ is set to $true$ so that it can be skipped when processing values at position 1 -- the next position.  
+At position 0 in CBP feature $operations$ of CBP object $c$, the values are different between the left and the right sides -- '??' and $ob$ respectively. Since the left value is undefined, we check the flags of $ob$. All flags $^*IsCreated$ and $^*IsDeleted$ are in the $false$ state, which means element \textsf{ob} has been existed since the original version -- it has never been created or deleted in recent changes. Thus, the only possible type of change is move. Thus by checking the attributes $leftPosition$ and $rightPosition$ in class \textsf{Element} (in Fig. \ref{fig:approach_class_diagram}), the positions of element \textbf{ob} are different between the left and right sides -- at positions 1 and 0 respectively. Therefore, we can decide that the second diff is $d_2^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{ob}, \textsf{MOVE}]. The flag \textit{isDiffed} of CBP object $ob$ is set to $true$ so that it can be skipped when processing values at position 1 -- the next position.  
 
 The values at position 2 in CBP object $c$'s $operations$ CBP feature are equal. Therefore, there is no diff at this position. At position 3, the values are different -- $of$ and $og$. When checking the $^*IsCreated$ and $^*IsDeleted$ flags, we can identify that both $of$ and $og$ have been separately created in the left and right recent changes respectively -- both has their $^*IsCreated$ flags are set to $true$. Thus, we can infer that $of$ and $og$ have been added to the position. To make the right model equals to the left model, element \textsf{of} should be added to the right side, and element \textsf{og} should be deleted. Thus, we can determine the third diff as $d_3^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{of}, \textsf{ADD}] and the fourth diff as $d_4^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{og}, \textsf{DELETE}].
 
