@@ -354,11 +354,11 @@ An element tree is similar to the list of matches in the previous model comparis
                 \tcp{put all values to their proper positions}
                 updateTree($targetElement$, $feature$, $value$, $position$, $side$)\;
                 $oldPosition$ $\leftarrow$ calculateOldPosition($featureEventList$, $previousPosition$, $side$)\;
-                \If{\Not isCreated($value$, $side$) \And isOldValueSet($feature$, $previousValue$, $previousPosition$, $side$) \Is false} {
+                \If{\Not isCreated($value$, $side$) \And \Not isOldValueSet($feature$, $previousValue$, $previousPosition$, $side$)} {
                     setOldValue($feature$, $previousValue$, $oldPosition$, $side$)\;
                     $oppositeFeatureEventList$ $\leftarrow$ getOppositeFeatureEventList($feature$, $side$)\;
                     $oppositePosition$ $\leftarrow$ calculateOppositePosition($oppositeFeatureEventList$, $oldPosition$, $side$)\;
-                    \If{isOppositeSideValueSet($feature$, $value$, $oppositePosition$, $side$) is False} {
+                    \If{\Not isDeleted($value$, $side$) \And \Not isOppositeSideValueSet($feature$, $value$, $oppositePosition$, $side$)} {
                         setOppositeSideValue($feature$, $value$, $oppositePosition$, $side$)\;
                     }
                 }   
@@ -388,50 +388,44 @@ At line 9, we retrieve the \textsf{featureEventList} from the \textsf{feature} t
 
 To better understand how the algorithm works, we explain its execution using both change events in the Listings \ref{lst:leftcbp} and \ref{lst:rightcbp}. We start from the left change events. 
 
-\begin{wrapfigure}[19]{r}{0.5\textwidth}
-    \vspace{-20pt}
-    \includegraphics[width=\linewidth]{images/LeftElementTreeDiagram}
-    \caption{A class diagram showing the core components of the change-based approach to optimise model comparison.}
-    \label{fig:left_element_tree_diagram}
-\end{wrapfigure}
+%\begin{wrapfigure}[18]{r}{0.5\textwidth}
+%   
+%\end{wrapfigure}
 
 \vspace{-10pt}
-\subsubsection{Left Side.}\label{sec:left_side} In List. \ref{lst:leftcbp}, the first event is a \textsf{session} event (line 13). \textsf{Session} event indicates that its following events -- until the next session event or end of file -- are one batch of changes when they were persisted into a change-based persistence file. This event is not significant for model comparison, thus skipped. 
+\subsubsection{Left Side.}\label{sec:left_side} In List. \ref{lst:leftcbp}, the first event is a \textsf{session} event (line 13). \textsf{Session} event indicates that its following events -- until the next session event or end of file -- are one batch of changes when they were persisted into a change-based persistence file. This event is not significant for model comparison, thus it is skipped. 
 
-In the next event, \texttt{\small \textbf{set} x.name \textbf{from} "Math" \textbf{to} "MathLib"} (line 14), we can identify that there is an element with id \textsf{x} that has been existed from the original model. It has a feature \textsf{name} with a value ``Math'' in the original model and has been changed to ``MathLib'' in the left model. Since the element \textsf{x} has not existed in the $elementThree$, we create its instance of \textsf{Element} and also its feature \textsf{name}. We set the value of the feature \textsf{name} to ``MathLib'' and also set it to ``Math'' in the partial state of the original model -- it has not been set before. As the same feature in the right side also has not been set, we set it to ``Math'' as well.          
+In the next event, \texttt{\small \textbf{set} x.name \textbf{from} "Math" \textbf{to} "MathLib"} (line 14), we can identify that there is an element with id \textsf{x} that has been existed from the original model. It has a feature \textsf{name} with a value ``Math'' in the original model and has been changed to ``MathLib'' in the left model. Since the element \textsf{x} has not existed in the $elementThree$, we create its instance of \textsf{Element} and also its feature \textsf{name}. We set the value of the feature \textsf{name} to ``MathLib'' and also set it to ``Math'' in the partial state of the original model -- it has not been set before. As this feature in the right side also has not been set, we set it to ``Math'' as well. Once a feature in the original state has been set, it cannot be overridden -- using the flag \textsf{isOldSet} in class \textsf{Feature} in Fig. \ref{fig:approach_class_diagram}. 
 
 In the event at line 15, \texttt{\small \textbf{create} d \textbf{type} Operation}, we can indentify that there an element with id \textsf{d} has been created. We also update the \textsf{elementTree} to include this element and set the element's flag \textsf{leftIsCreated} to \textsf{true}. In the event at line 16, \texttt{\small \textbf{set} d.name \textbf{to} "sqrt"}, we can identify that element \textsf{d}'s feature \textsf{name} has been set to ``sqrt''. Thus, we update the \textsf{d}'s feature \textsf{name} in the \textsf{elementTree}. From the event at line 1, \texttt{\small \textbf{add} d \textbf{to} x.operations \textbf{at} 1}, we can deduce that element \textsf{d} is added to position 1 in the element \textsf{x}'s feature \textsf{operations}. Thus, we assign \textsf{d} to element \textsf{x}'s feature \textsf{operations} at position 1 in the \textsf{elementTree}. As \textsf{d} is a new element that only exists in the left model, we do not update changes of this element to the original and right models. 
 
-From the event at line 18, \texttt{\small \textbf{remove} b \textbf{in} x.operations \textbf{at} 2}, we can identify that there is element \textsf{b} in the original model, but it is deleted in the left model. The position of element \textsf{b} in the original model is calculated by comparing its position to the previous change events of feature that contains the element \textsf{b}.  
+From the event at line 18, \texttt{\small \textbf{remove} b \textbf{in} x.operations \textbf{at} 2}, we can identify that there is element \textsf{b} in the original model, but it is deleted in the left model. The position of element \textsf{b} in the original model is calculated by comparing its previous position to the previous change events that have been applied to its feature, and increase or decrease it depending on the conditions with the previous change events (the previous change events are obtained from $changeEventList$ in Alg. \ref{alg:element_tree}). Since the previous event is adding element \textsf{d} to position 1 and the position of \textsf{b} is at 2 at the time it is removed, we can deduce that before element \textsf{d} is added, the position of element \textsf{b} is at 1 and shifted to 2 because of the addition of element \textsf{d}.  Therefore, we can conclude that the original position of element \textsf{b} is at 1. Thus, we update the original state of the \textsf{elementTree} by adding element \textsf{b} into the element \textsf{x}'s feature \textsf{operations} at position 1.  
 
-
-%session "left"
-%set x.name from "Math" to "MathLib"
-%create d type Operation
-%set d.name to "sqrt"
-%add d to x.operations at 1
-%remove b in x.operations at 2
-
-At line 2, the event  , there is an element with id \textsf{x}. The element has a feature \textsf{name} with values ``Math'' in its original model and ``MathLib'' in its eventual left version. Also, from the event \textsf{\small \textbf{move} a \textbf{in} x.operations \textbf{from} 0 \textbf{to} 2}, there is an element with id \textsf{a}, and the element is contained in in the feature \textsf{operations} of element \textsf{x}. 
-
-
-
-
-\subsubsection{Right Side.} 
-\label{sec:right_side}
-
-\begin{wrapfigure}[21]{r}{0.5\textwidth}
+\begin{wrapfigure}[37]{r}{0.5\textwidth}
     \vspace{-20pt}
+    \includegraphics[width=\linewidth]{images/LeftElementTreeDiagram}
+    \caption{The \textsf{elementTree} after processing all left change events.}
+    \label{fig:left_element_tree_diagram}
+    \vspace{1em}
     \includegraphics[width=\linewidth]{images/RightElementTreeDiagram}
-    \caption{A class diagram showing the core components of the change-based approach to optimise model comparison.}
+    \caption{The \textsf{elementTree} after processing all left and right change events.}
     \label{fig:right_element_tree_diagram}
 \end{wrapfigure}
 
-The iteration continues to the right CBP. The line 1 is skipped since it is a session event.  At line 2, a CBP object with id $ob$ and CBP feature $name$ is created. The values of CBP feature $name$ are also set so that it has $rightValues$[0] = ``Operation BB'', $oldValues$[0] = ``Operation B'', and $leftValues$[0] = ``Operation B''. 
+We perform the same procedure to also add element \textsf{b} to the right state of the \textsf{elementTree}. However, since there is no change event has been applied to right side of element \textsf{x}'s feature \textsf{operations}, the calculation of element \textsf{b}'s position should return the same value as in the original state (line 15, Alg. \ref{alg:element_tree}), and thus element \textsf{b} has the same position as in the original state. It is important to notice, in this step, the flag \textsf{isRightSet} (class \textsf{Feature}, Fig. \ref{fig:approach_class_diagram}) is not set to \textsf{true} since we want the value can be overridden during processing the right change events. The last event, \texttt{\small \textbf{delete} b}, removes the element \textsf{b} from the left model. Hence, we set the flag \textsf{isLeftDeleted} of element \textsf{a} to \textsf{true}.
+
+Fig. \ref{fig:left_element_tree_diagram} illustrates the state of the \textsf{elementTree} after all left change events have been processed. As can be seen, the \textsf{elementThree} exhibits the partial states of the original, left, and right models at once. 
+
+\vspace{-10pt}
+\subsubsection{Right Side.}\label{sec:right_side}  Similar to the left side, the List. \ref{lst:rightcbp} also starts with a \textsf{session} event (line 13) indicating a new batch of change events. From the event at line 14, \texttt{\small \textbf{move} a \textbf{in} x.operations \textbf{from} 0 \textbf{to} 2}, we can infer that in the right model there is an element with id \textsf{a} positioned at 2 in the element \textsf{x}'s feature \textsf{operations}. Thus, an instance of class \textsf{Element} of this element \textsf{a} is added to the \textsf{elementTree} and positioned at index 2 of the element \textsf{x}'s feature \textsf{operations}. Since the event is a \textsf{move} type and the new position is larger than its previous position, it means elements that are between its previous and new positions are shifted one place down. As element \textsf{b} has already exists in the same feature (the element was added during the process of the left change events) and its position is between element \textsf{a}'s movement, the position of element \textsf{b} is shifted down from 1 to 0. 
+
+Also since the event's type is \textsf{move}, it's previous position is 0, and it is the first event that change the position of element \textsf{a}, these conditions imply that element \textsf{a} is positioned at 0 in element \textsf{x}'s feature \textsf{operations}. Therefore, we add the element \textsf{a} to  the element \textsf{x}'s feature \textsf{operations} in the original state of the \textsf{elementTree}. As element \textsf{b} is deleted on the left model -- identified using the flag \textsf{leftIsDeleted} in Fig. \ref{fig:approach_class_diagram}, the process of adding the element to the left side is not performed. From the last event at line 15, \texttt{\small \textbf{set} a.name \textbf{from} "Math" \textbf{to} "MathUtil"}, we can infer that in the right model the value of element \textsf{a}'s feature \textsf{name} is ``MathUtil'' in the right model. Hence, we set the feature \textsf{name} to ``MathUtil'' in the right state. We do apply this operation to the original and left states as they have been set before.  
+
+Fig. \ref{fig:right_element_tree_diagram} exhibits the state of the \textsf{elementTree} after both side change events have been processed. Using this data structure, we can determine the difference between the left and right models without having to visit and compare all elements and features of both models, which we discuss in the next section.
 
 \subsection{Diff Computation}
 \label{sec:diff_computation}
-Our approach determines the differences between the two models by iterating through the element tree in Table \ref{table:right_object_tree} and making use of the states of values and $^*IsCreated$ and $^*IsDeleted$ flags. At CBP object $c$, the values of CBP feature $name$ are different between the left and the right sides. Thus, to make the right value equals to the left value, the value has to be change from ``Class X'' to ``Class 01''. Thus, we can determine that the first diff is $d_1^\prime$ = [\textsf{c}, \textsf{name}, ``Change 01'', \textsf{CHANGE}], which as are equal to $d_1$ that is defined in Sect. \ref{sec:change-based_persistence}.
+
 
 \IncMargin{1.5em}
 \begin{algorithm}[H]
@@ -479,16 +473,6 @@ Our approach determines the differences between the two models by iterating thro
     \label{alg:diff_calculation}
 \end{algorithm}
 \DecMargin{1.5em}
-
-At position 0 in CBP feature $operations$ of CBP object $c$, the values are different between the left and the right sides -- '??' and $ob$ respectively. Since the left value is undefined, we check the flags of $ob$. All flags $^*IsCreated$ and $^*IsDeleted$ are in the $false$ state, which means element \textsf{ob} has been existed since the original version -- it has never been created or deleted in recent changes. Thus, the only possible type of change is move. Thus by checking the attributes $leftPosition$ and $rightPosition$ in class \textsf{Element} (in Fig. \ref{fig:approach_class_diagram}), the positions of element \textbf{ob} are different between the left and right sides -- at positions 1 and 0 respectively. Therefore, we can decide that the second diff is $d_2^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{ob}, \textsf{MOVE}]. The flag \textit{isDiffed} of CBP object $ob$ is set to $true$ so that it can be skipped when processing values at position 1 -- the next position.  
-
-The values at position 2 in CBP object $c$'s $operations$ CBP feature are equal. Therefore, there is no diff at this position. At position 3, the values are different -- $of$ and $og$. When checking the $^*IsCreated$ and $^*IsDeleted$ flags, we can identify that both $of$ and $og$ have been separately created in the left and right recent changes respectively -- both has their $^*IsCreated$ flags are set to $true$. Thus, we can infer that $of$ and $og$ have been added to the position. To make the right model equals to the left model, element \textsf{of} should be added to the right side, and element \textsf{og} should be deleted. Thus, we can determine the third diff as $d_3^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{of}, \textsf{ADD}] and the fourth diff as $d_4^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{og}, \textsf{DELETE}].
-
-At position 4 in CBP feature $operations$ of CBP object $c$, the values are not equal. When checking their $^*IsCreated$ and $^*IsDeleted$ flags, we can infer that $oc$ has been existed since the original version -- all its $^*IsCreated$ and $^*IsDeleted$ flags are $false$ -- and $od$ is deleted from the left model -- its $leftIsCreated$ flag is $true$. The $leftPosition$ and $rightPosition$ of $oc$ are also checked and their values are different -- 4 and 5 respectively. Thus, to make the right model equals to the left model, element \textsf{oc} should be moved from 5 to 4, element \textsf{od} should be deleted. Therefore, we can formulate  that the fifth diff is $d_5^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{oc}, \textsf{MOVE}] and the sixth diff is $d_6^\prime$ = [\textsf{c}, \textsf{operations}, \textsf{od}, \textsf{DELETE}]. 
-
-However, due to the design of features in Ecore/EMF metamodel, deleting an element from a feature shifts all the positions of the following elements one step downward. So it is not necessary to define $d_5^\prime$ as the position of \textsf{oc} is automatically stepped down from 5 to 4 if the \textit{deletion} ($d_6^\prime$) is executed first. To accommodate this, \textit{deletion} is given priority over \textit{move}. 
-
-More explanation will be added here.
 
 \section{Evaluation Method}
 \label{sec:evaluation}
